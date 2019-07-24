@@ -25,6 +25,10 @@ class _EdgeIndices {
   int a, b;
 
   _EdgeIndices(int this.a, int this.b);
+
+  String toString() {
+    return '$a-$b';
+  }
 }
 
 class Edge {
@@ -37,36 +41,44 @@ class HyperObject {
   static var _perspectiveMatrix = TransformationMatrix.perspective(1000.0);
   static var usePerspective = true;
 
-  List<Vector> _vertices = [];
+  List<Vector> _vertices;
   List<Vector> _drawingVertices;
-  List<_EdgeIndices> _edges = [];
+  List<_EdgeIndices> _edges;
   Vector _translation = Vector.zero();
   final _rotations = List<List<double>>.generate(dimensions, (int index) => List<double>.filled(dimensions, 0));
 
   static setPerspective(double distance) => _perspectiveMatrix = TransformationMatrix.perspective(distance);
 
   HyperObject.hypercube(final length) {
+    _vertices = List<Vector>(1 << dimensions);
+    _drawingVertices = List<Vector>(_vertices.length);
+    _edges = List<_EdgeIndices>(dimensions * (1 << (dimensions - 1)));
+
     var vertex = Vector.filled(-length / 2.0);
     vertex[dimensions] = 1.0;
-    _vertices.add(vertex);
+    _vertices[0] = vertex;
+
+    var vi = 1;
+    var ei = 0;
 
     for (int dim = 0; dim < dimensions; ++dim) {
-      final numVertices = _vertices.length;
-      final numEdges = _edges.length;
+      final numVertices = vi;
+      final numEdges = ei;
 
       for (int i = 0; i < numEdges; ++i) {
-        _edges.add(_EdgeIndices(_edges[i].a + numVertices, _edges[i].b + numVertices));
+        _edges[ei] = _EdgeIndices(_edges[i].a + numVertices, _edges[i].b + numVertices);
+        ++ei;
       }
 
       for (int i = 0; i < numVertices; ++i) {
-        _edges.add(_EdgeIndices(i, _vertices.length));
+        _edges[ei] = _EdgeIndices(i, vi);
+        ++ei;
         vertex = Vector.from(_vertices[i]);
         vertex[dim] += length;
-        _vertices.add(vertex);
+        _vertices[vi] = vertex;
+        ++vi;
       }
     }
-
-    _drawingVertices = List<Vector>(_vertices.length);
   }
 
   void update(int time) {
@@ -93,10 +105,13 @@ class HyperObject {
 
 void main() {
   const pi = 3.141592653589793;
-  var foo = TransformationMatrix.rotation(0, 1, 3.141592653589793);
-  final v = Vector();
-  v[0] = 1;
-  v[1] = 1;
-  final u = foo.transform(v);
-  print(u);
+//  var foo = TransformationMatrix.rotation(0, 1, 3.141592653589793);
+//  final v = Vector();
+//  v[0] = 1;
+//  v[1] = 1;
+//  final u = foo.transform(v);
+//  print(u);
+  final cube = HyperObject.hypercube(100);
+  print(cube._vertices);
+  print(cube._edges);
 }
