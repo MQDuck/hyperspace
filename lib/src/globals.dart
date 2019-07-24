@@ -17,6 +17,4 @@
  * along with Hyperspace-Dart.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export 'src/globals.dart';
-export 'src/hyper_object.dart';
-export 'src/vector.dart';
+var dimensions = 2;
