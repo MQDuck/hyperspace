@@ -42,8 +42,8 @@ class Vertex {
     _coords = List.from(other._coords);
   }
 
-  double operator [](int i) => _coords[i];
-  void operator []=(int i, double val) => _coords[i] = val;
+  double operator [](int index) => _coords[index];
+  void operator []=(int index, double val) => _coords[index] = val;
 
   double operator *(Vertex other) {
     var product = 0.0;
@@ -59,17 +59,21 @@ class Vertex {
 }
 
 class TransformMatrix {
-  List<Vertex> matrix;
+  List<Vertex> _matrix;
 
   void _setToIdentityMatrix() {
-    matrix = List.generate(dimensions + 1, (int _) => Vertex.zero());
+    _matrix = List.generate(dimensions + 1, (int _) => Vertex.zero());
     for (var i = 0; i <= dimensions; ++i) {
-      matrix[i][i] = 1.0;
+      _matrix[i][i] = 1.0;
     }
   }
 
   TransformMatrix.identity() {
     _setToIdentityMatrix();
+  }
+
+  TransformMatrix.zero() {
+    _matrix = List.generate(dimensions + 1, (int _) => Vertex.zero());
   }
 
   TransformMatrix.rotation(int xa, int xb, double theta) {
@@ -80,53 +84,53 @@ class TransformMatrix {
     _setToIdentityMatrix();
     final cosTheta = cos(theta);
     final sinTheta = sin(theta);
-    matrix[xa][xa] = cosTheta;
-    matrix[xa][xb] = -sinTheta;
-    matrix[xb][xa] = sinTheta;
-    matrix[xb][xb] = cosTheta;
+    _matrix[xa][xa] = cosTheta;
+    _matrix[xa][xb] = -sinTheta;
+    _matrix[xb][xa] = sinTheta;
+    _matrix[xb][xb] = cosTheta;
   }
 
-  TransformMatrix.translation(List<double> translation) {
-    assert(translation.length == dimensions + 1 || translation.length == dimensions);
-
+  TransformMatrix.translation(Vertex translation) {
     _setToIdentityMatrix();
     for (int i = 0; i < dimensions; ++i) {
-      matrix[i][dimensions] = translation[i];
+      _matrix[i][dimensions] = translation[i];
     }
   }
 
-  List<double> transform(List<double> vector) {
-    assert(vector.length == dimensions + 1);
-
-    final newVec = List.filled(dimensions + 1, 0.0);
-    for (int i = 0; i <= dimensions; ++i) {
-      for (int j = 0; j <= dimensions; ++j) {
-        newVec[i] += matrix[i][j] * vector[j];
-      }
-    }
-    return newVec;
-  }
-
-  Vertex operator *(Vertex vertex) {
+  Vertex transform(Vertex vertex) {
     final newVertex = Vertex.zero();
     for (int i = 0; i <= dimensions; ++i) {
-      newVertex[i] = matrix[i] * vertex;
+      newVertex[i] = _matrix[i] * vertex;
     }
     return newVertex;
   }
 
+  Vertex operator [](int index) => _matrix[index];
+
+  TransformMatrix operator *(TransformMatrix other) {
+    final newMatrix = TransformMatrix.zero();
+    for (int i = 0; i <= dimensions; ++i) {
+      for (int k = 0; k <= dimensions; ++k) {
+        for (int j = 0; j <= dimensions; ++j) {
+          newMatrix[i][j] += _matrix[i][k] * other[k][j];
+        }
+      }
+    }
+    return newMatrix;
+  }
+
   String toString() {
-    var str = '[${matrix[0]}';
+    var str = '[${_matrix[0]}';
     for (int i = 1; i <= dimensions; ++i) {
-      str += '\n ${matrix[i]}';
+      str += '\n ${_matrix[i]}';
     }
     return str + ']';
   }
 }
 
 class _Edge {
-  final a, b;
-  _Edge(this.a, this.b);
+  final int a, b;
+  _Edge(int this.a, int this.b);
 }
 
 class HSObject {
@@ -154,10 +158,6 @@ class HSObject {
       }
     }
   }
-
-  void rotate(int xa, int xb, double theta) {
-
-  }
 }
 
 void main() {
@@ -165,7 +165,6 @@ void main() {
   final v = Vertex();
   v[0] = 1;
   v[1] = 1;
-  print(foo.transform([1, 1, 1, 1, 1]));
-  final u = foo * v;
+  final u = foo.transform(v);
   print(u);
 }
