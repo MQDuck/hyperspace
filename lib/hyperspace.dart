@@ -21,31 +21,31 @@ import 'dart:math';
 
 var dimensions = 4;
 
-class Vertex {
+class Vector {
   List<double> _coords;
 
-  Vertex() {
+  Vector() {
     _coords = List.filled(dimensions + 1, 0.0);
     _coords[dimensions] = 1.0;
   }
 
-  Vertex.filled(double fill) {
+  Vector.filled(double fill) {
     _coords = List.filled(dimensions + 1, fill);
     _coords[dimensions] = 1.0;
   }
 
-  Vertex.zero() {
+  Vector.zero() {
     _coords = List.filled(dimensions + 1, 0.0);
   }
 
-  Vertex.from(Vertex other) {
+  Vector.from(Vector other) {
     _coords = List.from(other._coords);
   }
 
   double operator [](int index) => _coords[index];
   void operator []=(int index, double val) => _coords[index] = val;
 
-  double operator *(Vertex other) {
+  double operator *(Vector other) {
     var product = 0.0;
     for (int i = 0; i <= dimensions; ++i) {
       product += _coords[i] * other[i];
@@ -59,10 +59,10 @@ class Vertex {
 }
 
 class TransformMatrix {
-  List<Vertex> _matrix;
+  List<Vector> _matrix;
 
   void _setToIdentityMatrix() {
-    _matrix = List.generate(dimensions + 1, (int _) => Vertex.zero());
+    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
     for (var i = 0; i <= dimensions; ++i) {
       _matrix[i][i] = 1.0;
     }
@@ -73,39 +73,51 @@ class TransformMatrix {
   }
 
   TransformMatrix.zero() {
-    _matrix = List.generate(dimensions + 1, (int _) => Vertex.zero());
+    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
   }
 
   TransformMatrix.rotation(int xa, int xb, double theta) {
-    if (xa == xb) {
+    if (xa == xb || xa < 0 || xa >= dimensions || xb < 0 || xb >= dimensions) {
       throw ArgumentError();
     }
 
     _setToIdentityMatrix();
     final cosTheta = cos(theta);
-    final sinTheta = sin(theta);
+    final sinTheta = 1 - cosTheta * cosTheta;
     _matrix[xa][xa] = cosTheta;
     _matrix[xa][xb] = -sinTheta;
     _matrix[xb][xa] = sinTheta;
     _matrix[xb][xb] = cosTheta;
   }
 
-  TransformMatrix.translation(Vertex translation) {
+  TransformMatrix.translation(Vector translation) {
     _setToIdentityMatrix();
     for (int i = 0; i < dimensions; ++i) {
       _matrix[i][dimensions] = translation[i];
     }
   }
 
-  Vertex transform(Vertex vertex) {
-    final newVertex = Vertex.zero();
-    for (int i = 0; i <= dimensions; ++i) {
-      newVertex[i] = _matrix[i] * vertex;
-    }
-    return newVertex;
+  TransformMatrix.from(TransformMatrix other) {
+    _matrix = List.generate(dimensions + 1, (int index) => Vector.from(other[index]));
   }
 
-  Vertex operator [](int index) => _matrix[index];
+  Vector transform(Vector vector) {
+    final newVector = Vector.zero();
+    for (int i = 0; i <= dimensions; ++i) {
+      newVector[i] = _matrix[i] * vector;
+    }
+    return newVector;
+  }
+
+  TransformMatrix addTranslation(Vector translation) {
+    TransformMatrix newTransform = TransformMatrix.from(this);
+    for (int i = 0; i < dimensions; ++i) {
+      newTransform[i][dimensions] += translation[i];
+    }
+    return newTransform;
+  }
+
+  Vector operator [](int index) => _matrix[index];
 
   TransformMatrix operator *(TransformMatrix other) {
     final newMatrix = TransformMatrix.zero();
@@ -134,11 +146,11 @@ class _Edge {
 }
 
 class HSObject {
-  List<Vertex> vertices = [];
+  List<Vector> vertices = [];
   List<_Edge> edges = [];
 
   HSObject.hypercube(final length) {
-    var vertex = Vertex.filled(-length / 2.0);
+    var vertex = Vector.filled(-length / 2.0);
     vertex[dimensions] = 1.0;
     vertices.add(vertex);
 
@@ -152,7 +164,7 @@ class HSObject {
 
       for (int i = 0; i < numVertices; ++i) {
         edges.add(_Edge(i, vertices.length));
-        vertex = Vertex.from(vertices[i]);
+        vertex = Vector.from(vertices[i]);
         vertex[dim] += length;
         vertices.add(vertex);
       }
@@ -162,7 +174,7 @@ class HSObject {
 
 void main() {
   var foo = TransformMatrix.rotation(0, 1, pi);
-  final v = Vertex();
+  final v = Vector();
   v[0] = 1;
   v[1] = 1;
   final u = foo.transform(v);
