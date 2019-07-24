@@ -97,16 +97,27 @@ class TransformMatrix {
     }
   }
 
-  TransformMatrix.from(TransformMatrix other) {
-    _matrix = List.generate(dimensions + 1, (int index) => Vector.from(other[index]));
+  TransformMatrix.perspective(double distance) {
+    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
+    _matrix[0][0] = 1.0;
+    _matrix[1][1] = 1.0;
+    double homogeneous = -1.0 / distance;
+    for (int i = 2; i < dimensions; ++i) {
+      _matrix[dimensions][i] = homogeneous;
+    }
+    _matrix[dimensions][dimensions] = 1.0;
   }
 
-  Vector transform(Vector vector) {
-    final newVector = Vector.zero();
-    for (int i = 0; i <= dimensions; ++i) {
-      newVector[i] = _matrix[i] * vector;
+  TransformMatrix.scale(double scale) {
+    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
+    for (int i = 0; i < dimensions; ++i) {
+      _matrix[i][i] = scale;
     }
-    return newVector;
+    _matrix[dimensions][dimensions] = 1.0;
+  }
+
+  TransformMatrix.from(TransformMatrix other) {
+    _matrix = List.generate(dimensions + 1, (int index) => Vector.from(other[index]));
   }
 
   TransformMatrix addTranslation(Vector translation) {
@@ -117,14 +128,24 @@ class TransformMatrix {
     return newTransform;
   }
 
+  Vector transform(Vector vector) {
+    final homogeneous = _matrix[dimensions] * vector;
+    final newVector = Vector.zero();
+    for (int i = 0; i < dimensions; ++i) {
+      newVector[i] = (_matrix[i] * vector) / homogeneous;
+    }
+    newVector[dimensions] = 1.0;
+    return newVector;
+  }
+
   Vector operator [](int index) => _matrix[index];
 
-  TransformMatrix operator *(TransformMatrix other) {
+  TransformMatrix operator *(TransformMatrix rhs) {
     final newMatrix = TransformMatrix.zero();
     for (int i = 0; i <= dimensions; ++i) {
       for (int k = 0; k <= dimensions; ++k) {
         for (int j = 0; j <= dimensions; ++j) {
-          newMatrix[i][j] += _matrix[i][k] * other[k][j];
+          newMatrix[i][j] += _matrix[i][k] * rhs[k][j];
         }
       }
     }
@@ -140,36 +161,71 @@ class TransformMatrix {
   }
 }
 
-class _Edge {
+class _EdgeIndices {
   final int a, b;
-  _Edge(int this.a, int this.b);
+
+  _EdgeIndices(int this.a, int this.b);
+}
+
+class Edge {
+  final Vector a, b;
+
+  Edge(Vector this.a, Vector this.b);
 }
 
 class HSObject {
-  List<Vector> vertices = [];
-  List<_Edge> edges = [];
+  static var _perspectiveMatrix = TransformMatrix.perspective(1000.0);
+  static var usePerspective = true;
+
+  List<Vector> _vertices = [];
+  List<Vector> _drawVertices;
+  List<_EdgeIndices> _edges = [];
+  Vector _translation = Vector.zero();
+
+  static setPerspective(double distance) => _perspectiveMatrix = TransformMatrix.perspective(distance);
 
   HSObject.hypercube(final length) {
     var vertex = Vector.filled(-length / 2.0);
     vertex[dimensions] = 1.0;
-    vertices.add(vertex);
+    _vertices.add(vertex);
 
     for (int dim = 0; dim < dimensions; ++dim) {
-      final numVertices = vertices.length;
-      final numEdges = edges.length;
+      final numVertices = _vertices.length;
+      final numEdges = _edges.length;
 
       for (int i = 0; i < numEdges; ++i) {
-        edges.add(_Edge(edges[i].a + numVertices, edges[i].b + numVertices));
+        _edges.add(_EdgeIndices(_edges[i].a + numVertices, _edges[i].b + numVertices));
       }
 
       for (int i = 0; i < numVertices; ++i) {
-        edges.add(_Edge(i, vertices.length));
-        vertex = Vector.from(vertices[i]);
+        _edges.add(_EdgeIndices(i, _vertices.length));
+        vertex = Vector.from(_vertices[i]);
         vertex[dim] += length;
-        vertices.add(vertex);
+        _vertices.add(vertex);
       }
     }
+
+    _drawVertices = List<Vector>(_vertices.length);
   }
+
+  void update() {
+    // TODO: Do rotations and whatever on _vertices here
+
+    TransformMatrix transformation;
+    if (usePerspective) {
+      transformation = TransformMatrix.translation(_translation) * _perspectiveMatrix;
+    } else {
+      transformation = TransformMatrix.translation(_translation);
+    }
+
+    for (int i = 0; i < _vertices.length; ++i) {
+      _drawVertices[i] = transformation.transform(_vertices[i]);
+    }
+  }
+
+  int numEdges() => _edges.length;
+
+  Edge operator [](int index) => Edge(_drawVertices[_edges[index].a], _drawVertices[_edges[index].b]);
 }
 
 void main() {
