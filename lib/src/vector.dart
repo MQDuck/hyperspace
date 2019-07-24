@@ -21,6 +21,8 @@ import 'globals.dart';
 
 class Vector {
   List<double> _coords;
+  bool _hidden = false;
+  bool get isHidden => _hidden;
 
   Vector() {
     _coords = List.filled(dimensions + 1, 0.0);
@@ -43,6 +45,16 @@ class Vector {
   double operator [](int index) => _coords[index];
 
   void operator []=(int index, double val) => _coords[index] = val;
+
+  void setHidden() {
+    _hidden = false;
+    for (int i = 2; i < dimensions; ++i) {
+      if (_coords[i] < 0.0) {
+        _hidden = true;
+        return;
+      }
+    }
+  }
 
   double operator *(Vector other) {
     var product = 0.0;

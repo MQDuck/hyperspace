@@ -22,47 +22,66 @@ import 'dart:math';
 import 'globals.dart';
 import 'vector.dart';
 
-class TransformMatrix {
+class TransformationMatrix {
   List<Vector> _matrix;
 
-  void _setToIdentityMatrix() {
+  void _setToZeroMatrix() {
     _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
+  }
+
+  void _setToIdentityMatrix() {
+    _setToZeroMatrix();
     for (var i = 0; i <= dimensions; ++i) {
       _matrix[i][i] = 1.0;
     }
   }
 
-  TransformMatrix.identity() {
+  TransformationMatrix.identity() {
     _setToIdentityMatrix();
   }
 
-  TransformMatrix.zero() {
-    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
+  TransformationMatrix.zero() {
+    _setToZeroMatrix();
   }
 
-  TransformMatrix.rotation(int xa, int xb, double theta) {
+  TransformationMatrix.rotation(int xa, int xb, double theta, {double scale = 1.0}) {
     if (xa == xb || xa < 0 || xa >= dimensions || xb < 0 || xb >= dimensions) {
       throw ArgumentError();
     }
 
     _setToIdentityMatrix();
-    final cosTheta = cos(theta);
-    final sinTheta = sin(theta);
+    final cosTheta = scale * cos(theta);
+    final sinTheta = scale * sin(theta);
     _matrix[xa][xa] = cosTheta;
     _matrix[xa][xb] = -sinTheta;
     _matrix[xb][xa] = sinTheta;
     _matrix[xb][xb] = cosTheta;
   }
 
-  TransformMatrix.translation(Vector translation) {
+  TransformationMatrix.multiRotation(final List<List<double>> rotations, {double scale = 1.0}) {
+    _setToIdentityMatrix();
+    for (int xa = 0; xa < dimensions - 1; ++xa) {
+      for (int xb = xa + 1; xb < dimensions; ++xb) {
+        final theta = rotations[xa][xb];
+        final cosTheta = scale * cos(theta);
+        final sinTheta = scale * sin(theta);
+        _matrix[xa][xa] = cosTheta;
+        _matrix[xa][xb] = -sinTheta;
+        _matrix[xb][xa] = sinTheta;
+        _matrix[xb][xb] = cosTheta;
+      }
+    }
+  }
+
+  TransformationMatrix.translation(Vector translation) {
     _setToIdentityMatrix();
     for (int i = 0; i < dimensions; ++i) {
       _matrix[i][dimensions] = translation[i];
     }
   }
 
-  TransformMatrix.perspective(double distance) {
-    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
+  TransformationMatrix.perspective(double distance) {
+    _setToZeroMatrix();
     _matrix[0][0] = 1.0;
     _matrix[1][1] = 1.0;
     double homogeneous = -1.0 / distance;
@@ -72,20 +91,20 @@ class TransformMatrix {
     _matrix[dimensions][dimensions] = 1.0;
   }
 
-  TransformMatrix.scale(double scale) {
-    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
+  TransformationMatrix.scale(double scale) {
+    _setToZeroMatrix();
     for (int i = 0; i < dimensions; ++i) {
       _matrix[i][i] = scale;
     }
     _matrix[dimensions][dimensions] = 1.0;
   }
 
-  TransformMatrix.from(TransformMatrix other) {
+  TransformationMatrix.from(TransformationMatrix other) {
     _matrix = List.generate(dimensions + 1, (int index) => Vector.from(other[index]));
   }
 
-  TransformMatrix addTranslation(Vector translation) {
-    TransformMatrix newTransform = TransformMatrix.from(this);
+  TransformationMatrix addTranslation(Vector translation) {
+    TransformationMatrix newTransform = TransformationMatrix.from(this);
     for (int i = 0; i < dimensions; ++i) {
       newTransform[i][dimensions] += translation[i];
     }
@@ -104,8 +123,8 @@ class TransformMatrix {
 
   Vector operator [](int index) => _matrix[index];
 
-  TransformMatrix operator *(TransformMatrix rhs) {
-    final newMatrix = TransformMatrix.zero();
+  TransformationMatrix operator *(TransformationMatrix rhs) {
+    final newMatrix = TransformationMatrix.zero();
     for (int i = 0; i <= dimensions; ++i) {
       for (int k = 0; k <= dimensions; ++k) {
         for (int j = 0; j <= dimensions; ++j) {

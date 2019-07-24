@@ -18,7 +18,7 @@
  */
 
 import 'globals.dart';
-import 'transform_matrix.dart';
+import 'transformation_matrix.dart';
 import 'vector.dart';
 
 class _EdgeIndices {
@@ -34,15 +34,16 @@ class Edge {
 }
 
 class HyperObject {
-  static var _perspectiveMatrix = TransformMatrix.perspective(1000.0);
+  static var _perspectiveMatrix = TransformationMatrix.perspective(1000.0);
   static var usePerspective = true;
 
   List<Vector> _vertices = [];
   List<Vector> _drawingVertices;
   List<_EdgeIndices> _edges = [];
   Vector _translation = Vector.zero();
+  final _rotations = List<List<double>>.generate(dimensions, (int index) => List<double>.filled(dimensions, 0));
 
-  static setPerspective(double distance) => _perspectiveMatrix = TransformMatrix.perspective(distance);
+  static setPerspective(double distance) => _perspectiveMatrix = TransformationMatrix.perspective(distance);
 
   HyperObject.hypercube(final length) {
     var vertex = Vector.filled(-length / 2.0);
@@ -68,45 +69,34 @@ class HyperObject {
     _drawingVertices = List<Vector>(_vertices.length);
   }
 
-  void update() {
-    // TODO: Do rotations and whatever on _vertices here
-
-    TransformMatrix transformation;
-    if (usePerspective) {
-      transformation = TransformMatrix.translation(_translation) * _perspectiveMatrix;
-    } else {
-      transformation = TransformMatrix.translation(_translation);
+  void update(int time) {
+    final movement = TransformationMatrix.multiRotation(_rotations, scale: time as double);
+    for (var vertex in _vertices) {
+      vertex = movement.transform(vertex);
     }
 
+    var drawTransform = TransformationMatrix.translation(_translation);
+    if (usePerspective) {
+      drawTransform = drawTransform * _perspectiveMatrix;
+    }
     for (int i = 0; i < _vertices.length; ++i) {
-      _drawingVertices[i] = transformation.transform(_vertices[i]);
+      final drawingVertex = drawTransform.transform(_vertices[i]);
+      drawingVertex.setHidden();
+      _drawingVertices[i] = drawingVertex;
     }
   }
 
   int get length => _edges.length;
 
   Edge operator [](int index) => Edge(_drawingVertices[_edges[index].a], _drawingVertices[_edges[index].b]);
-
-  void __rotate(int xa, int xb, double theta) {
-    final rotation = TransformMatrix.rotation(xa, xb, theta);
-    for (int i = 0; i < _vertices.length; ++i) {
-      _vertices[i] = rotation.transform(_vertices[i]);
-    }
-  }
 }
 
 void main() {
   const pi = 3.141592653589793;
-//  var foo = TransformMatrix.rotation(0, 1, 3.141592653589793);
-//  final v = Vector();
-//  v[0] = 1;
-//  v[1] = 1;
-//  final u = foo.transform(v);
-//  print(u);
-
-  final square = HyperObject.hypercube(100);
-  print(square._vertices);
-  square.__rotate(0, 1, pi / 4);
-  print(square._vertices);
-  print(square._edges);
+  var foo = TransformationMatrix.rotation(0, 1, 3.141592653589793);
+  final v = Vector();
+  v[0] = 1;
+  v[1] = 1;
+  final u = foo.transform(v);
+  print(u);
 }
