@@ -17,35 +17,33 @@
  * along with Hyperspace-Dart.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import 'dart:math';
-
-import 'globals.dart';
-import 'vector.dart';
+part of hyperspace;
 
 class TransformationMatrix {
   List<Vector> _matrix;
+  final Hyperspace space;
 
   void _setToZeroMatrix() {
-    _matrix = List.generate(dimensions + 1, (int _) => Vector.zeroed());
+    _matrix = List.generate(space._dimensions + 1, (int _) => Vector.zeroed(space));
   }
 
   void _setToIdentityMatrix() {
     _setToZeroMatrix();
-    for (var i = 0; i <= dimensions; ++i) {
+    for (var i = 0; i <= space._dimensions; ++i) {
       _matrix[i][i] = 1.0;
     }
   }
 
-  TransformationMatrix.identity() {
+  TransformationMatrix.identity(this.space) {
     _setToIdentityMatrix();
   }
 
-  TransformationMatrix.zero() {
+  TransformationMatrix.zero(this.space) {
     _setToZeroMatrix();
   }
 
-  TransformationMatrix.rotation(int xa, int xb, double theta, {double scale = 1.0}) {
-    if (xa == xb || xa < 0 || xa >= dimensions || xb < 0 || xb >= dimensions) {
+  TransformationMatrix.rotation(this.space, int xa, int xb, double theta, {double scale = 1.0}) {
+    if (xa == xb || xa < 0 || xa >= space._dimensions || xb < 0 || xb >= space._dimensions) {
       throw ArgumentError();
     }
 
@@ -58,51 +56,51 @@ class TransformationMatrix {
     _matrix[xb][xb] = cosTheta;
   }
 
-  TransformationMatrix.translation(Vector translation) {
+  TransformationMatrix.translation(this.space, Vector translation) {
     _setToIdentityMatrix();
-    for (int i = 0; i < dimensions; ++i) {
-      _matrix[i][dimensions] = translation[i];
+    for (int i = 0; i < space._dimensions; ++i) {
+      _matrix[i][space._dimensions] = translation[i];
     }
   }
 
-  TransformationMatrix.perspective(double distance) {
+  TransformationMatrix.perspective(this.space, double distance) {
     _setToZeroMatrix();
     _matrix[0][0] = 1.0;
     _matrix[1][1] = 1.0;
     double homogeneous = -1.0 / distance;
-    for (int i = 2; i < dimensions; ++i) {
-      _matrix[dimensions][i] = homogeneous;
+    for (int i = 2; i < space._dimensions; ++i) {
+      _matrix[space._dimensions][i] = homogeneous;
     }
-    _matrix[dimensions][dimensions] = 1.0;
+    _matrix[space._dimensions][space._dimensions] = 1.0;
   }
 
-  TransformationMatrix.scale(double scale) {
+  TransformationMatrix.scale(this.space, double scale) {
     _setToZeroMatrix();
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < space._dimensions; ++i) {
       _matrix[i][i] = scale;
     }
-    _matrix[dimensions][dimensions] = 1.0;
+    _matrix[space._dimensions][space._dimensions] = 1.0;
   }
 
-  TransformationMatrix.from(TransformationMatrix other) {
-    _matrix = List.generate(dimensions + 1, (int index) => Vector.from(other[index]));
+  TransformationMatrix.from(this.space, TransformationMatrix other) {
+    _matrix = List.generate(space._dimensions + 1, (int index) => Vector.from(space, other[index]));
   }
 
   TransformationMatrix addTranslation(Vector translation) {
-    TransformationMatrix newTransform = TransformationMatrix.from(this);
-    for (int i = 0; i < dimensions; ++i) {
-      newTransform[i][dimensions] += translation[i];
+    TransformationMatrix newTransform = TransformationMatrix.from(space, this);
+    for (int i = 0; i < space._dimensions; ++i) {
+      newTransform[i][space._dimensions] += translation[i];
     }
     return newTransform;
   }
 
   Vector transform(Vector vector) {
-    final homogeneous = _matrix[dimensions] * vector;
-    final newVector = Vector.zeroed();
-    for (int i = 0; i < dimensions; ++i) {
+    final homogeneous = _matrix[space._dimensions] * vector;
+    final newVector = Vector.zeroed(space);
+    for (int i = 0; i < space._dimensions; ++i) {
       newVector[i] = (_matrix[i] * vector) / homogeneous;
     }
-    newVector[dimensions] = 1.0;
+    newVector[space._dimensions] = 1.0;
     newVector.isVisible = vector.isVisible;
     return newVector;
   }
@@ -110,10 +108,10 @@ class TransformationMatrix {
   Vector operator [](int index) => _matrix[index];
 
   TransformationMatrix operator *(TransformationMatrix rhs) {
-    final newMatrix = TransformationMatrix.zero();
-    for (int i = 0; i <= dimensions; ++i) {
-      for (int k = 0; k <= dimensions; ++k) {
-        for (int j = 0; j <= dimensions; ++j) {
+    final newMatrix = TransformationMatrix.zero(space);
+    for (int i = 0; i <= space._dimensions; ++i) {
+      for (int k = 0; k <= space._dimensions; ++k) {
+        for (int j = 0; j <= space._dimensions; ++j) {
           newMatrix[i][j] += _matrix[i][k] * rhs[k][j];
         }
       }
@@ -123,7 +121,7 @@ class TransformationMatrix {
 
   String toString() {
     var str = '[${_matrix[0]}';
-    for (int i = 1; i <= dimensions; ++i) {
+    for (int i = 1; i <= space._dimensions; ++i) {
       str += '\n ${_matrix[i]}';
     }
     return str + ']';

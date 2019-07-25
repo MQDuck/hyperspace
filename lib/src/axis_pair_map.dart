@@ -17,11 +17,15 @@
  * along with hyperspace.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import 'globals.dart';
+part of hyperspace;
 
 class AxisPairMap {
-  List<List<double>> pairs =
-      List<List<double>>.generate(dimensions, (int index) => index == 0 ? null : List<double>.filled(dimensions, 0.0));
+  final List<List<double>> pairs;
+  final Hyperspace space;
+
+  AxisPairMap(this.space)
+      : pairs = List<List<double>>.generate(
+      space._dimensions, (int index) => index == 0 ? null : List<double>.filled(space._dimensions, 0.0));
 
   void set(int xa, int xb, double val) {
     assert(xa != xb);

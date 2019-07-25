@@ -17,6 +17,19 @@
  * along with Hyperspace-Dart.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export 'src/globals.dart';
-export 'src/hyper_object.dart';
-export 'src/vector.dart';
+/// Hyperspace!
+///
+/// More dartdocs go here.
+library hyperspace;
+
+import 'dart:math';
+
+part 'src/axis_pair_map.dart';
+
+part 'src/hyper_object.dart';
+
+part 'src/hyperspace.dart';
+
+part 'src/transformation_matrix.dart';
+
+part 'src/vector.dart';
