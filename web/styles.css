@@ -10,5 +10,14 @@ html, body {
 
 #output {
   padding: 20px;
-  text-align: center;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+#hyperwrapper {
+  width: 1000px;
+  height: 1000px;
+  margin: auto;
+  color: white;
+  background: black;
 }
