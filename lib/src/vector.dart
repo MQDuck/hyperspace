@@ -38,13 +38,34 @@ class Vector {
     _coords = List.filled(dimensions + 1, 0.0);
   }
 
+  Vector._nulled() {
+    _coords = List<double>(dimensions + 1);
+  }
+
   Vector.from(Vector other) {
     _coords = List.from(other._coords);
   }
 
   double operator [](int index) => _coords[index];
-
   void operator []=(int index, double val) => _coords[index] = val;
+
+  Vector operator +(Vector rhs) {
+    final sum = Vector._nulled();
+    for (int i = 0; i < dimensions; ++i) {
+      sum[i] = _coords[i] + rhs[i];
+    }
+    sum[dimensions] = 1.0;
+    return sum;
+  }
+
+  Vector operator -(Vector rhs) {
+    final difference = Vector._nulled();
+    for (int i = 0; i < dimensions; ++i) {
+      difference[i] = _coords[i] - rhs[i];
+    }
+    difference[dimensions] = 1.0;
+    return difference;
+  }
 
   void setHidden() {
     _hidden = false;

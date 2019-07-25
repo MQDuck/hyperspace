@@ -80,6 +80,8 @@ class HyperObject {
       }
     }
   }
+  
+  void translate(Vector translation) => _translation += translation;
 
   void update(int time) {
     final movement = TransformationMatrix.multiRotation(_rotations, scale: time as double);
