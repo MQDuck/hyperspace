@@ -17,4 +17,4 @@
  * along with Hyperspace-Dart.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var dimensions = 2;
+var dimensions = 4;

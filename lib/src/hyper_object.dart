@@ -24,7 +24,7 @@ import 'vector.dart';
 class _EdgeIndices {
   int a, b;
 
-  _EdgeIndices(int this.a, int this.b);
+  _EdgeIndices(this.a, this.b);
 
   String toString() {
     return '$a-$b';
@@ -34,17 +34,18 @@ class _EdgeIndices {
 class Edge {
   Vector a, b;
 
-  Edge(Vector this.a, Vector this.b);
+  Edge(this.a, this.b);
 }
 
 class HyperObject {
   static var _perspectiveMatrix = TransformationMatrix.perspective(1000.0);
   static var usePerspective = true;
+  static var _globalTranslation = Vector();
 
   List<Vector> _vertices;
   List<Vector> _drawingVertices;
   List<_EdgeIndices> _edges;
-  Vector _translation = Vector.zero();
+  Vector _translation = Vector.zeroed();
   final _rotations = List<List<double>>.generate(dimensions, (int index) => List<double>.filled(dimensions, 0));
 
   static setPerspective(double distance) => _perspectiveMatrix = TransformationMatrix.perspective(distance);
@@ -80,16 +81,43 @@ class HyperObject {
       }
     }
   }
-  
+
   void translate(Vector translation) => _translation += translation;
 
-  void update(int time) {
-    final movement = TransformationMatrix.multiRotation(_rotations, scale: time as double);
-    for (var vertex in _vertices) {
-      vertex = movement.transform(vertex);
+  void setRotation(int xa, int xb, double theta) {
+    if (xa == xb || xa < 0 || xb < 0 || xa >= dimensions || xb >= dimensions) {
+      throw ArgumentError();
     }
 
-    var drawTransform = TransformationMatrix.translation(_translation);
+    if (xa > xb) {
+      xa = xa + xb;
+      xb = xa - xb;
+      xa = xa - xb;
+    }
+
+    _rotations[xa][xb] = theta;
+  }
+
+  static void setDisplayCenter(double x, double y) {
+    final center = Vector();
+    center[0] = x;
+    center[1] = y;
+    _globalTranslation = center;
+  }
+
+  void update(int time) {
+    var movement = TransformationMatrix.identity();
+    for (int xa = 0; xa < dimensions - 1; ++xa) {
+      for (int xb = xa + 1; xb < dimensions; ++xb) {
+        movement = TransformationMatrix.rotation(xa, xb, _rotations[xa][xb] * time) * movement;
+      }
+    }
+
+    for (int i = 0; i < _vertices.length; ++i) {
+      _vertices[i] = movement.transform(_vertices[i]);
+    }
+
+    var drawTransform = TransformationMatrix.translation(_translation + _globalTranslation);
     if (usePerspective) {
       drawTransform = drawTransform * _perspectiveMatrix;
     }
@@ -107,13 +135,4 @@ class HyperObject {
 
 void main() {
   const pi = 3.141592653589793;
-//  var foo = TransformationMatrix.rotation(0, 1, 3.141592653589793);
-//  final v = Vector();
-//  v[0] = 1;
-//  v[1] = 1;
-//  final u = foo.transform(v);
-//  print(u);
-  final cube = HyperObject.hypercube(100);
-  print(cube._vertices);
-  print(cube._edges);
 }

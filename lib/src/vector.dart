@@ -34,7 +34,7 @@ class Vector {
     _coords[dimensions] = 1.0;
   }
 
-  Vector.zero() {
+  Vector.zeroed() {
     _coords = List.filled(dimensions + 1, 0.0);
   }
 
@@ -84,6 +84,12 @@ class Vector {
     }
     return product;
   }
+
+  double get x => _coords[0];
+
+  double get y => _coords[1];
+
+  double get z => _coords[2];
 
   String toString() {
     return _coords.toString();

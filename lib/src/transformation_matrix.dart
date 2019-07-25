@@ -26,7 +26,7 @@ class TransformationMatrix {
   List<Vector> _matrix;
 
   void _setToZeroMatrix() {
-    _matrix = List.generate(dimensions + 1, (int _) => Vector.zero());
+    _matrix = List.generate(dimensions + 1, (int _) => Vector.zeroed());
   }
 
   void _setToIdentityMatrix() {
@@ -56,21 +56,6 @@ class TransformationMatrix {
     _matrix[xa][xb] = -sinTheta;
     _matrix[xb][xa] = sinTheta;
     _matrix[xb][xb] = cosTheta;
-  }
-
-  TransformationMatrix.multiRotation(final List<List<double>> rotations, {double scale = 1.0}) {
-    _setToIdentityMatrix();
-    for (int xa = 0; xa < dimensions - 1; ++xa) {
-      for (int xb = xa + 1; xb < dimensions; ++xb) {
-        final theta = rotations[xa][xb];
-        final cosTheta = scale * cos(theta);
-        final sinTheta = scale * sin(theta);
-        _matrix[xa][xa] = cosTheta;
-        _matrix[xa][xb] = -sinTheta;
-        _matrix[xb][xa] = sinTheta;
-        _matrix[xb][xb] = cosTheta;
-      }
-    }
   }
 
   TransformationMatrix.translation(Vector translation) {
@@ -113,7 +98,7 @@ class TransformationMatrix {
 
   Vector transform(Vector vector) {
     final homogeneous = _matrix[dimensions] * vector;
-    final newVector = Vector.zero();
+    final newVector = Vector.zeroed();
     for (int i = 0; i < dimensions; ++i) {
       newVector[i] = (_matrix[i] * vector) / homogeneous;
     }
