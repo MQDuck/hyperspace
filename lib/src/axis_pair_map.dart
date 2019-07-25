@@ -38,12 +38,12 @@ class AxisPairMap {
   double get(int xa, int xb) {
     assert(xa != xb);
 
-    if (xa < xb) {
+    if (xa > xb) {
       xa = xa + xb;
       xb = xa - xb;
       xa = xa - xb;
     }
 
-    return pairs[xa][xb];
+    return pairs[xb][xa];
   }
 }

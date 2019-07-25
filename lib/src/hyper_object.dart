@@ -39,17 +39,23 @@ class Edge {
 }
 
 class HyperObject {
-  static var _perspectiveMatrix = TransformationMatrix.perspective(1000.0);
+  static var _perspectiveMatrix = TransformationMatrix.identity();
   static var usePerspective = true;
   static var _globalTranslation = Vector();
 
   List<Vector> _vertices;
   List<Vector> _drawingVertices;
   List<_EdgeIndices> _edges;
-  Vector _translation = Vector.zeroed();
+  Vector _translation = Vector();
   final _rotations = AxisPairMap();
+  final _rotation_velocities = AxisPairMap();
 
-  static setPerspective(double distance) => _perspectiveMatrix = TransformationMatrix.perspective(distance);
+  static void setViewerPosition(double x, double y, double other) {
+    final displayTranslation = Vector();
+    displayTranslation[0] = x;
+    displayTranslation[1] = y;
+    _perspectiveMatrix = TransformationMatrix.translation(displayTranslation) * TransformationMatrix.perspective(other);
+  }
 
   HyperObject.hypercube(final length) {
     _vertices = List<Vector>(1 << dimensions);
@@ -85,43 +91,36 @@ class HyperObject {
 
   void translate(Vector translation) => _translation += translation;
 
-  void setRotation(int xa, int xb, double theta) => _rotations.set(xa, xb, theta);
+  void setRotationVelocity(int xa, int xb, double theta) => _rotation_velocities.set(xa, xb, theta);
 
-  static void setDisplayCenter(double x, double y) {
-    final center = Vector();
-    center[0] = x;
-    center[1] = y;
-    _globalTranslation = center;
+  static void setHyperdimensionDistance(double distance) {
+    for (int i = 2; i < dimensions; ++i) {
+      _globalTranslation[i] = distance;
+    }
   }
 
   void update(int time) {
-    var movement = TransformationMatrix.identity();
+    var drawMatrix = TransformationMatrix.identity();
     for (int xa = 0; xa < dimensions - 1; ++xa) {
       for (int xb = xa + 1; xb < dimensions; ++xb) {
-        movement = TransformationMatrix.rotation(xa, xb, _rotations.get(xb, xa) * time) * movement;
+        final theta = _rotations.get(xa, xb) + _rotation_velocities.get(xa, xb) * time;
+        _rotations.set(xa, xb, theta);
+        drawMatrix = TransformationMatrix.rotation(xa, xb, theta) * drawMatrix;
       }
     }
+    drawMatrix = TransformationMatrix.translation(_translation + _globalTranslation) * drawMatrix;
 
     for (int i = 0; i < _vertices.length; ++i) {
-      _vertices[i] = movement.transform(_vertices[i]);
-    }
-
-    var drawTransform = TransformationMatrix.translation(_translation + _globalTranslation);
-    if (usePerspective) {
-      drawTransform = drawTransform * _perspectiveMatrix;
-    }
-    for (int i = 0; i < _vertices.length; ++i) {
-      final drawingVertex = drawTransform.transform(_vertices[i]);
-      drawingVertex.setHidden();
-      _drawingVertices[i] = drawingVertex;
+      var vertex = drawMatrix.transform(_vertices[i]);
+      vertex.setVisible();
+      if (vertex.isVisible && usePerspective) {
+        vertex = _perspectiveMatrix.transform(vertex);
+      }
+      _drawingVertices[i] = vertex;
     }
   }
 
   int get length => _edges.length;
 
   Edge operator [](int index) => Edge(_drawingVertices[_edges[index].a], _drawingVertices[_edges[index].b]);
-}
-
-void main() {
-  const pi = 3.141592653589793;
 }

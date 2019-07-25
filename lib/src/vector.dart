@@ -21,8 +21,7 @@ import 'globals.dart';
 
 class Vector {
   List<double> _coords;
-  bool _hidden = false;
-  bool get isHidden => _hidden;
+  bool isVisible = false;
 
   Vector() {
     _coords = List.filled(dimensions + 1, 0.0);
@@ -46,6 +45,20 @@ class Vector {
     _coords = List.from(other._coords);
   }
 
+  Vector.fromList(List<double> list) {
+    if (list.length == dimensions + 1) {
+      _coords = List.from(list);
+    } else if (list.length == dimensions) {
+      _coords = List<double>(dimensions + 1);
+      for (int i = 0; i < dimensions; ++i) {
+        _coords[i] = list[i];
+      }
+      _coords[dimensions] = 1.0;
+    } else {
+      throw ArgumentError();
+    }
+  }
+
   double operator [](int index) => _coords[index];
   void operator []=(int index, double val) => _coords[index] = val;
 
@@ -67,11 +80,11 @@ class Vector {
     return difference;
   }
 
-  void setHidden() {
-    _hidden = false;
+  void setVisible() {
+    isVisible = true;
     for (int i = 2; i < dimensions; ++i) {
       if (_coords[i] < 0.0) {
-        _hidden = true;
+        isVisible = false;
         return;
       }
     }

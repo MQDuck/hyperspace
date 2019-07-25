@@ -103,6 +103,7 @@ class TransformationMatrix {
       newVector[i] = (_matrix[i] * vector) / homogeneous;
     }
     newVector[dimensions] = 1.0;
+    newVector.isVisible = vector.isVisible;
     return newVector;
   }
 
