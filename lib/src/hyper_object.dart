@@ -17,6 +17,7 @@
  * along with Hyperspace-Dart.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import 'axis_pair_map.dart';
 import 'globals.dart';
 import 'transformation_matrix.dart';
 import 'vector.dart';
@@ -46,7 +47,7 @@ class HyperObject {
   List<Vector> _drawingVertices;
   List<_EdgeIndices> _edges;
   Vector _translation = Vector.zeroed();
-  final _rotations = List<List<double>>.generate(dimensions, (int index) => List<double>.filled(dimensions, 0));
+  final _rotations = AxisPairMap();
 
   static setPerspective(double distance) => _perspectiveMatrix = TransformationMatrix.perspective(distance);
 
@@ -84,19 +85,7 @@ class HyperObject {
 
   void translate(Vector translation) => _translation += translation;
 
-  void setRotation(int xa, int xb, double theta) {
-    if (xa == xb || xa < 0 || xb < 0 || xa >= dimensions || xb >= dimensions) {
-      throw ArgumentError();
-    }
-
-    if (xa > xb) {
-      xa = xa + xb;
-      xb = xa - xb;
-      xa = xa - xb;
-    }
-
-    _rotations[xa][xb] = theta;
-  }
+  void setRotation(int xa, int xb, double theta) => _rotations.set(xa, xb, theta);
 
   static void setDisplayCenter(double x, double y) {
     final center = Vector();
@@ -109,7 +98,7 @@ class HyperObject {
     var movement = TransformationMatrix.identity();
     for (int xa = 0; xa < dimensions - 1; ++xa) {
       for (int xb = xa + 1; xb < dimensions; ++xb) {
-        movement = TransformationMatrix.rotation(xa, xb, _rotations[xa][xb] * time) * movement;
+        movement = TransformationMatrix.rotation(xa, xb, _rotations.get(xb, xa) * time) * movement;
       }
     }
 
