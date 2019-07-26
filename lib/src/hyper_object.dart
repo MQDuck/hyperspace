@@ -89,7 +89,7 @@ class HyperObject {
 
   void setRotationVelocity(int xa, int xb, double theta) => _rotation_velocities.set(xa, xb, theta);
 
-  void _update(int time) {
+  void _update(double time) {
     var drawMatrix = TransformationMatrix.identity(space);
     for (int xa = 0; xa < space._dimensions - 1; ++xa) {
       for (int xb = xa + 1; xb < space._dimensions; ++xb) {

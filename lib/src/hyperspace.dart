@@ -45,7 +45,7 @@ class Hyperspace {
     }
   }
 
-  void update(int time) {
+  void update(double time) {
     for (final object in objects) {
       object._update(time);
     }
@@ -56,4 +56,6 @@ class Hyperspace {
     objects.add(cube);
     return cube;
   }
+
+  void translate(Vector translation) => _globalTranslation += translation;
 }

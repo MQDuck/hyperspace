@@ -49,10 +49,10 @@ class Vector {
   Vector.fromList(this.space, List<double> list) {
     if (list.length == space._dimensions + 1) {
       _coords = List.from(list);
-    } else if (list.length == space._dimensions) {
-      _coords = List<double>(space._dimensions + 1);
-      for (int i = 0; i < space._dimensions; ++i) {
-        _coords[i] = list[i];
+    } else if (list.length <= space._dimensions) {
+      _coords = List<double>.filled(space._dimensions + 1, 0.0);
+      for (int xi = 0; xi < list.length; ++xi) {
+        _coords[xi] = list[xi];
       }
       _coords[space._dimensions] = 1.0;
     } else {
