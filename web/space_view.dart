@@ -11,6 +11,8 @@ class SpaceView {
   int targetFrameTime = 27; // TODO: modify this based on user's device type (PC, mobile, etc.).
   double _lastTimeStamp = 0.0;
   int _frameCounter = 80;
+  var _dragging = false;
+  Point<num> mousePosition;
 
   static _nullOutput(String _) => {};
 
@@ -20,13 +22,34 @@ class SpaceView {
     space.setViewerPosition(canvas.width >> 1 as double, canvas.height >> 1 as double, viewerDistance);
     space.setHyperdimensionDistance(spaceDistance);
 
+    canvas.addEventListener('mousedown', (e) => mouseDown(e as MouseEvent));
+    canvas.addEventListener('mouseup', (e) => mouseUp(e as MouseEvent));
+    canvas.addEventListener('mousemove', (e) => mouseMove(e as MouseEvent));
+
     output('Welcome to Hyperspace!');
   }
 
-//  Future run() async => update(await window.animationFrame);
-  Future run() async {
-    update(await window.animationFrame);
+  void mouseDown(MouseEvent mouseEvent) {
+//    print('${mouseEvent.client.x}, ${mouseEvent.client.y}');
+    mousePosition = mouseEvent.client;
+    _dragging = true;
   }
+
+  void mouseUp(MouseEvent mouseEvent) {
+//    print('${mouseEvent.client.x}, ${mouseEvent.client.y}');
+    _dragging = false;
+  }
+
+  void mouseMove(MouseEvent mouseEvent) {
+    if (_dragging) {
+      final newPosition = mouseEvent.client;
+      final diff = newPosition - mousePosition;
+      space.translate(Vector.fromList(space, [diff.x, diff.y]));
+      mousePosition = newPosition;
+    }
+  }
+
+  Future run() async => update(await window.animationFrame);
 
   void update(double delta) {
     final double diff = delta - _lastTimeStamp;
