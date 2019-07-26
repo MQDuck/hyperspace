@@ -12,7 +12,7 @@ void main() {
   ctx.strokeStyle = '#FFFFFF';
 
   spaceView =
-      SpaceView(3, 800.0, 100.0, canvas, ctx, output: output);
+      SpaceView(4, 800.0, 100.0, canvas, ctx, output: output);
   spaceView.targetFrameTime = 16;
   final cube = spaceView.space.addHypercube(100.0);
   cube.setRotationVelocity(0, 2, 0.00062831853071795865);

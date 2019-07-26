@@ -24,6 +24,7 @@ class SpaceView {
 
     canvas.addEventListener('mousedown', (e) => mouseDown(e as MouseEvent));
     canvas.addEventListener('mouseup', (e) => mouseUp(e as MouseEvent));
+    canvas.addEventListener('mouseout', (e) => mouseUp(e as MouseEvent));
     canvas.addEventListener('mousemove', (e) => mouseMove(e as MouseEvent));
 
     output('Welcome to Hyperspace!');
