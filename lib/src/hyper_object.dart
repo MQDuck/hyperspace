@@ -68,7 +68,8 @@ class HyperObject {
       final numEdges = ei;
 
       for (int i = 0; i < numEdges; ++i) {
-        _edges[ei] = _EdgeIndices(_edges[i].a + numVertices, _edges[i].b + numVertices);
+        _edges[ei] =
+            _EdgeIndices(_edges[i].a + numVertices, _edges[i].b + numVertices);
         ++ei;
       }
 
@@ -110,7 +111,28 @@ class HyperObject {
     }
   }
 
-  int get length => _edges.length;
+  List<double> getVertexList({final scaleX = 1.0, final scaleY = 1.0}) {
+    final vertexList = List<double>(_drawingVertices.length << 1);
+    for (int i = 0; i < _drawingVertices.length; ++i) {
+      vertexList[i << 1] = scaleX * _drawingVertices[i].x;
+      vertexList[(i << 1) + 1] = scaleY * _drawingVertices[i].y;
+    }
+    return vertexList;
+  }
 
-  Edge operator [](int index) => Edge(_drawingVertices[_edges[index].a], _drawingVertices[_edges[index].b]);
+  List<int> getVisibleEdgeIndexList() {
+    final edgeList = List<int>();
+    for (final edge in _edges) {
+      if (_drawingVertices[edge.a].isVisible && _drawingVertices[edge.b].isVisible) {
+        edgeList.add(edge.a);
+        edgeList.add(edge.b);
+      }
+    }
+    return edgeList;
+  }
+
+  int get numEdges => _edges.length;
+
+  Edge getEdge(int index) =>
+      Edge(_drawingVertices[_edges[index].a], _drawingVertices[_edges[index].b]);
 }
