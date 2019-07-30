@@ -12,11 +12,9 @@ class SpaceView {
   final Function(String) output;
   int targetFrameTime = 27; // TODO: modify this based on user's device type (PC, mobile, etc.).
   double _lastTimeStamp = 0.0;
-  int _frameCounter = 80;
   var _dragging = false;
   Point<num> _mousePosition;
   double _scaleX, _scaleY;
-  final Program _program;
   final Buffer _vertexBuffer, _indexBuffer, _colorBuffer;
 
   static _nullOutput(String _) => {};
@@ -44,7 +42,6 @@ class SpaceView {
   SpaceView(int dimensions, double viewerDistance, double spaceDistance, this._canvas, this._gl,
       {this.output = _nullOutput})
       : space = Hyperspace(dimensions),
-        _program = _gl.createProgram(),
         _vertexBuffer = _gl.createBuffer(),
         _indexBuffer = _gl.createBuffer(),
         _colorBuffer = _gl.createBuffer() {
@@ -128,39 +125,41 @@ class SpaceView {
       _lastTimeStamp = delta;
       space.update(diff);
       redraw();
-      if (_frameCounter == 10000) {
-        output('${1000.0 / diff} FPS');
-//      output('diff = $diff');
-        _frameCounter = 0;
-      }
     }
     run();
   }
 
-  redraw() {
-    // TODO: support multiple objects
-    final vertices = List<double>();
-    final indices = List<int>();
-    final colors = List<double>();
+  void redraw() {
+    _gl.clear(WebGL.COLOR_BUFFER_BIT);
+
     for (final object in space.objects) {
-      vertices.addAll(object.getVertexList(scaleX: _scaleX, scaleY: _scaleY));
-      indices.addAll(object.getVisibleEdgeIndexList());
+      final vertices = object.getVertexList(scaleX: _scaleX, scaleY: _scaleY);
+      final indices = object.getVisibleEdgeIndexList();
+      final colors = List<double>();
       for (int i = 0; i < vertices.length >> 2; ++i) {
         colors.addAll([1.0, 0.0, 0.0]);
       }
       for (int i = 0; i < vertices.length >> 2; ++i) {
         colors.addAll([0.0, 0.0, 1.0]);
       }
+
+      _gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
+      _gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(vertices));
+      _gl.bindBuffer(WebGL.ARRAY_BUFFER, _colorBuffer);
+      _gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(colors));
+
+      _gl.bufferSubData(WebGL.ELEMENT_ARRAY_BUFFER, 0, Uint16List.fromList(indices));
+      _gl.drawElements(WebGL.LINES, indices.length, WebGL.UNSIGNED_SHORT, 0);
     }
-
-    _gl.clear(WebGL.COLOR_BUFFER_BIT);
-
-    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
-    _gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(vertices));
-    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _colorBuffer);
-    _gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(colors));
-
-    _gl.bufferSubData(WebGL.ELEMENT_ARRAY_BUFFER, 0, Uint16List.fromList(indices));
-    _gl.drawElements(WebGL.LINES, indices.length, WebGL.UNSIGNED_SHORT, 0);
   }
+
+/*int _benchmarkRedraw() {
+    final stopwatch = Stopwatch();
+    stopwatch.start();
+    for (int i = 0; i < 1000; ++i) {
+      redraw();
+    }
+    stopwatch.stop();
+    return stopwatch.elapsedMilliseconds;
+  }*/
 }
