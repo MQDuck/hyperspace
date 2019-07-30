@@ -17,15 +17,15 @@ class SpaceView {
   Point<num> mousePosition;
   double scaleX, scaleY;
   final Program program;
-  final Buffer vbo;
+  final Buffer _vertexBuffer, _indexBuffer;
 
   static _nullOutput(String _) => {};
 
   static const _vertexShaderSrc = """
-attribute vec2 position;
+attribute vec2 coordinates;
 
 void main() {
-  gl_Position = vec4(position, 0.0, 1.0);
+  gl_Position = vec4(coordinates, 0.0, 1.0);
 }
 """;
 
@@ -41,7 +41,8 @@ void main() {
       {this.output = _nullOutput})
       : space = Hyperspace(dimensions),
         program = gl.createProgram(),
-        vbo = gl.createBuffer() {
+        _vertexBuffer = gl.createBuffer(),
+        _indexBuffer = gl.createBuffer() {
     space.setViewerPosition(0.0, 0.0, viewerDistance);
     space.setHyperdimensionDistance(spaceDistance);
 
@@ -56,57 +57,43 @@ void main() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    // Compile shaders and link
-    final Shader vs = gl.createShader(WebGL.VERTEX_SHADER);
-    gl.shaderSource(vs, _vertexShaderSrc);
-    gl.compileShader(vs);
+    gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
+    gl.bufferData(WebGL.ARRAY_BUFFER, Float32List(10000), WebGL.DYNAMIC_DRAW);
+    gl.bindBuffer(WebGL.ARRAY_BUFFER, null);
 
-    Shader fs = gl.createShader(WebGL.FRAGMENT_SHADER);
-    gl.shaderSource(fs, _fragmentShaderSrc);
-    gl.compileShader(fs);
+    gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+    gl.bufferData(WebGL.ELEMENT_ARRAY_BUFFER, Uint16List(10000), WebGL.DYNAMIC_DRAW);
+    gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, null);
 
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    gl.useProgram(program);
+    final vertexShader = gl.createShader(WebGL.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, _vertexShaderSrc);
+    gl.compileShader(vertexShader);
 
-    // Check if shaders were compiled properly
-    if (!gl.getShaderParameter(vs, WebGL.COMPILE_STATUS)) {
-      output(gl.getShaderInfoLog(vs));
-    }
+    final fragmentShader = gl.createShader(WebGL.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentShader, _fragmentShaderSrc);
+    gl.compileShader(fragmentShader);
 
-    if (!gl.getShaderParameter(fs, WebGL.COMPILE_STATUS)) {
-      output(gl.getShaderInfoLog(fs));
-    }
+    final shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+    gl.useProgram(shaderProgram);
 
-    if (!gl.getProgramParameter(program, WebGL.LINK_STATUS)) {
-      output(gl.getProgramInfoLog(program));
-    }
-
-    if (gl == null) {
-      output("Your browser doesn't seem to support WebGL.");
-      return;
-    }
-
-    gl.bindBuffer(WebGL.ARRAY_BUFFER, vbo);
-    gl.bufferData(
-        WebGL.ARRAY_BUFFER, Float32List(10000), WebGL.DYNAMIC_DRAW); // TODO: Don't just pass a really big list
-
-    int posAttrib = gl.getAttribLocation(program, "position");
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(posAttrib, 2, WebGL.FLOAT, false, 0, 0);
+    gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
+    gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+    final coordinates = gl.getAttribLocation(shaderProgram, "coordinates");
+    gl.vertexAttribPointer(coordinates, 2, WebGL.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(coordinates);
 
     output('Welcome to Hyperspace!');
   }
 
   void mouseDown(MouseEvent mouseEvent) {
-//    output('${mouseEvent.client.x}, ${mouseEvent.client.y}');
     mousePosition = mouseEvent.client;
     _dragging = true;
   }
 
   void mouseUp(MouseEvent mouseEvent) {
-//    output('${mouseEvent.client.x}, ${mouseEvent.client.y}');
     _dragging = false;
   }
 
@@ -137,18 +124,19 @@ void main() {
   }
 
   redraw() {
+    // TODO: support multiple objects
     final vertices = List<double>();
+    final indices = List<int>();
     for (final object in space.objects) {
-      for (int i = 0; i < object.length; ++i) {
-        final edge = object[i];
-        if (edge.a.isVisible && edge.b.isVisible) {
-          vertices.addAll([edge.a.x * scaleX, edge.a.y * scaleY, edge.b.x * scaleX, edge.b.y * scaleY]);
-        }
-      }
+      vertices.addAll(object.getVertexArray(scaleX: scaleX, scaleY: scaleY));
+      indices.addAll(object.getVisibleEdgeIndexArray());
     }
 
     gl.clear(WebGL.COLOR_BUFFER_BIT);
     gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(vertices));
-    gl.drawArrays(WebGL.LINES, 0, vertices.length >> 1);
+    gl.bufferSubData(WebGL.ELEMENT_ARRAY_BUFFER, 0, Uint16List.fromList(indices));
+    gl.drawElements(WebGL.LINES, indices.length, WebGL.UNSIGNED_SHORT, 0);
+
+    output('redraw');
   }
 }
