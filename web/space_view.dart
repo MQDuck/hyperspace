@@ -7,89 +7,103 @@ import 'package:hyperspace/hyperspace.dart';
 
 class SpaceView {
   final Hyperspace space;
-  final CanvasElement canvas;
-  final RenderingContext gl;
+  final CanvasElement _canvas;
+  final RenderingContext _gl;
   final Function(String) output;
   int targetFrameTime = 27; // TODO: modify this based on user's device type (PC, mobile, etc.).
   double _lastTimeStamp = 0.0;
   int _frameCounter = 80;
   var _dragging = false;
-  Point<num> mousePosition;
-  double scaleX, scaleY;
-  final Program program;
-  final Buffer _vertexBuffer, _indexBuffer;
+  Point<num> _mousePosition;
+  double _scaleX, _scaleY;
+  final Program _program;
+  final Buffer _vertexBuffer, _indexBuffer, _colorBuffer;
 
   static _nullOutput(String _) => {};
 
   static const _vertexShaderSrc = """
-attribute vec2 coordinates;
-
-void main() {
-  gl_Position = vec4(coordinates, 0.0, 1.0);
-}
+    attribute vec2 coordinates;
+    attribute vec3 color;
+    varying vec3 vColor;
+    
+    void main() {
+      gl_Position = vec4(coordinates, 0.0, 1.0);
+      vColor = color;
+    }
 """;
 
   static const _fragmentShaderSrc = """
-precision mediump float;
-
-void main() {
-  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-}
+    precision mediump float;
+    varying vec3 vColor;
+    
+    void main() {
+      gl_FragColor = vec4(vColor, 1.0);
+    }
 """;
 
-  SpaceView(int dimensions, double viewerDistance, double spaceDistance, this.canvas, this.gl,
+  SpaceView(int dimensions, double viewerDistance, double spaceDistance, this._canvas, this._gl,
       {this.output = _nullOutput})
       : space = Hyperspace(dimensions),
-        program = gl.createProgram(),
-        _vertexBuffer = gl.createBuffer(),
-        _indexBuffer = gl.createBuffer() {
+        _program = _gl.createProgram(),
+        _vertexBuffer = _gl.createBuffer(),
+        _indexBuffer = _gl.createBuffer(),
+        _colorBuffer = _gl.createBuffer() {
     space.setViewerPosition(0.0, 0.0, viewerDistance);
     space.setHyperdimensionDistance(spaceDistance);
 
-    scaleX = 1.0 / (canvas.width >> 1);
-    scaleY = 1.0 / (canvas.height >> 1);
+    _scaleX = 1.0 / (_canvas.width >> 1);
+    _scaleY = 1.0 / (_canvas.height >> 1);
 
-    canvas.addEventListener('mousedown', (e) => mouseDown(e as MouseEvent));
-    canvas.addEventListener('mouseup', (e) => mouseUp(e as MouseEvent));
-    canvas.addEventListener('mouseout', (e) => mouseUp(e as MouseEvent));
-    canvas.addEventListener('mousemove', (e) => mouseMove(e as MouseEvent));
+    _canvas.addEventListener('mousedown', (e) => mouseDown(e as MouseEvent));
+    _canvas.addEventListener('mouseup', (e) => mouseUp(e as MouseEvent));
+    _canvas.addEventListener('mouseout', (e) => mouseUp(e as MouseEvent));
+    _canvas.addEventListener('mousemove', (e) => mouseMove(e as MouseEvent));
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    _gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
-    gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
-    gl.bufferData(WebGL.ARRAY_BUFFER, Float32List(10000), WebGL.DYNAMIC_DRAW);
-    gl.bindBuffer(WebGL.ARRAY_BUFFER, null);
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
+    _gl.bufferData(WebGL.ARRAY_BUFFER, Float32List(10000), WebGL.DYNAMIC_DRAW);
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, null);
 
-    gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-    gl.bufferData(WebGL.ELEMENT_ARRAY_BUFFER, Uint16List(10000), WebGL.DYNAMIC_DRAW);
-    gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, null);
+    _gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+    _gl.bufferData(WebGL.ELEMENT_ARRAY_BUFFER, Uint16List(10000), WebGL.DYNAMIC_DRAW);
+    _gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, null);
 
-    final vertexShader = gl.createShader(WebGL.VERTEX_SHADER);
-    gl.shaderSource(vertexShader, _vertexShaderSrc);
-    gl.compileShader(vertexShader);
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _colorBuffer);
+    _gl.bufferData(WebGL.ARRAY_BUFFER, Float32List(30000), WebGL.DYNAMIC_DRAW);
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, null);
 
-    final fragmentShader = gl.createShader(WebGL.FRAGMENT_SHADER);
-    gl.shaderSource(fragmentShader, _fragmentShaderSrc);
-    gl.compileShader(fragmentShader);
+    final vertexShader = _gl.createShader(WebGL.VERTEX_SHADER);
+    _gl.shaderSource(vertexShader, _vertexShaderSrc);
+    _gl.compileShader(vertexShader);
 
-    final shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-    gl.useProgram(shaderProgram);
+    final fragmentShader = _gl.createShader(WebGL.FRAGMENT_SHADER);
+    _gl.shaderSource(fragmentShader, _fragmentShaderSrc);
+    _gl.compileShader(fragmentShader);
 
-    gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
-    gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-    final coordinates = gl.getAttribLocation(shaderProgram, "coordinates");
-    gl.vertexAttribPointer(coordinates, 2, WebGL.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(coordinates);
+    final shaderProgram = _gl.createProgram();
+    _gl.attachShader(shaderProgram, vertexShader);
+    _gl.attachShader(shaderProgram, fragmentShader);
+    _gl.linkProgram(shaderProgram);
+    _gl.useProgram(shaderProgram);
+
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
+    _gl.bindBuffer(WebGL.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+    final coordinates = _gl.getAttribLocation(shaderProgram, "coordinates");
+    _gl.vertexAttribPointer(coordinates, 2, WebGL.FLOAT, false, 0, 0);
+    _gl.enableVertexAttribArray(coordinates);
+
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _colorBuffer);
+    final color = _gl.getAttribLocation(shaderProgram, "color");
+    _gl.vertexAttribPointer(color, 3, WebGL.FLOAT, false, 0, 0);
+    _gl.enableVertexAttribArray(color);
 
     output('Welcome to Hyperspace!');
   }
 
   void mouseDown(MouseEvent mouseEvent) {
-    mousePosition = mouseEvent.client;
+    _mousePosition = mouseEvent.client;
     _dragging = true;
   }
 
@@ -100,9 +114,9 @@ void main() {
   void mouseMove(MouseEvent mouseEvent) {
     if (_dragging) {
       final newPosition = mouseEvent.client;
-      final diff = newPosition - mousePosition;
+      final diff = newPosition - _mousePosition;
       space.translate(Vector.fromList(space, [diff.x, -diff.y]));
-      mousePosition = newPosition;
+      _mousePosition = newPosition;
     }
   }
 
@@ -127,16 +141,26 @@ void main() {
     // TODO: support multiple objects
     final vertices = List<double>();
     final indices = List<int>();
+    final colors = List<double>();
     for (final object in space.objects) {
-      vertices.addAll(object.getVertexArray(scaleX: scaleX, scaleY: scaleY));
-      indices.addAll(object.getVisibleEdgeIndexArray());
+      vertices.addAll(object.getVertexList(scaleX: _scaleX, scaleY: _scaleY));
+      indices.addAll(object.getVisibleEdgeIndexList());
+      for (int i = 0; i < vertices.length >> 2; ++i) {
+        colors.addAll([1.0, 0.0, 0.0]);
+      }
+      for (int i = 0; i < vertices.length >> 2; ++i) {
+        colors.addAll([0.0, 0.0, 1.0]);
+      }
     }
 
-    gl.clear(WebGL.COLOR_BUFFER_BIT);
-    gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(vertices));
-    gl.bufferSubData(WebGL.ELEMENT_ARRAY_BUFFER, 0, Uint16List.fromList(indices));
-    gl.drawElements(WebGL.LINES, indices.length, WebGL.UNSIGNED_SHORT, 0);
+    _gl.clear(WebGL.COLOR_BUFFER_BIT);
 
-    output('redraw');
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
+    _gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(vertices));
+    _gl.bindBuffer(WebGL.ARRAY_BUFFER, _colorBuffer);
+    _gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(colors));
+
+    _gl.bufferSubData(WebGL.ELEMENT_ARRAY_BUFFER, 0, Uint16List.fromList(indices));
+    _gl.drawElements(WebGL.LINES, indices.length, WebGL.UNSIGNED_SHORT, 0);
   }
 }
