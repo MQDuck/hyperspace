@@ -200,10 +200,12 @@ class Hyperobject {
     }
 
     final maxMinDiff = maxDistance - minDistance;
-    final colorList = List<double>();
-    for (int i = 0; i < distances.length; ++i) {
+    final colorList = List<double>(distances.length * 3);
+    for (int i = 0; i < distances.length; i += 1) {
       final relative = (distances[i] - minDistance) / maxMinDiff;
-      colorList.addAll([1.0 - relative, 0.0, relative]);
+      colorList[3 * i] = 1.0 - relative;
+      colorList[3 * i + 1] = 0.0;
+      colorList[3 * i + 2] = relative;
     }
     return colorList;
   }
