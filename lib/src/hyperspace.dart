@@ -23,12 +23,14 @@ class Hyperspace {
   final List<HyperObject> objects = [];
   TransformationMatrix _perspectiveMatrix;
   Vector _globalTranslation;
+  Vector _viewerPosition;
   var _dimensions = 4;
   var usePerspective = true;
 
   Hyperspace(this._dimensions) {
     _perspectiveMatrix = TransformationMatrix.identity(this);
     _globalTranslation = Vector(this);
+    _viewerPosition = Vector(this);
   }
 
   void setViewerPosition(double x, double y, double other) {
@@ -37,6 +39,11 @@ class Hyperspace {
     displayTranslation[1] = y;
     _perspectiveMatrix =
         TransformationMatrix.translation(this, displayTranslation) * TransformationMatrix.perspective(this, other);
+
+    _viewerPosition = displayTranslation;
+    for (int i = 2; i < _dimensions; ++i) {
+      _viewerPosition[i] = other;
+    }
   }
 
   void setHyperdimensionDistance(double distance) {

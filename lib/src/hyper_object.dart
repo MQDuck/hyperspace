@@ -43,6 +43,7 @@ enum HyperObjectType { hypercube, hypersphere }
 
 class HyperObject {
   final List<Vector> _vertices;
+  final List<Vector> _positionVertices;
   final List<Vector> _drawingVertices;
   final List<_EdgeIndices> _edges;
   Vector _translation;
@@ -56,6 +57,7 @@ class HyperObject {
         _rotations = AxisPairMap(space),
         _rotation_velocities = AxisPairMap(space),
         _vertices = List<Vector>(1 << space._dimensions),
+        _positionVertices = List<Vector>(1 << space._dimensions),
         _drawingVertices = List<Vector>(1 << space._dimensions),
         _edges = List<_EdgeIndices>(space._dimensions * (1 << (space._dimensions - 1))),
         type = HyperObjectType.hypercube {
@@ -91,6 +93,7 @@ class HyperObject {
         _rotations = AxisPairMap(space),
         _rotation_velocities = AxisPairMap(space),
         _vertices = List<Vector>(((space._dimensions * (space._dimensions - 1)) >> 1) * precision),
+        _positionVertices = List<Vector>(((space._dimensions * (space._dimensions - 1)) >> 1) * precision),
         _drawingVertices = List<Vector>(((space._dimensions * (space._dimensions - 1)) >> 1) * precision),
         _edges = List<_EdgeIndices>(((space._dimensions * (space._dimensions - 1)) >> 1) * precision),
         type = HyperObjectType.hypersphere {
@@ -137,10 +140,12 @@ class HyperObject {
     for (int i = 0; i < _vertices.length; ++i) {
       var vertex = drawMatrix.transform(_vertices[i]);
       vertex.setVisible();
+      _positionVertices[i] = vertex;
       if (vertex.isVisible && space.usePerspective) {
-        vertex = space._perspectiveMatrix.transform(vertex);
+        _drawingVertices[i] = space._perspectiveMatrix.transform(vertex);
+      } else {
+        _drawingVertices[i] = vertex;
       }
-      _drawingVertices[i] = vertex;
     }
   }
 
@@ -162,6 +167,34 @@ class HyperObject {
       }
     }
     return edgeList;
+  }
+
+  List<double> getDepthColorList() {
+    final distances = List<double>(_drawingVertices.length);
+    var maxDistance = 0.0;
+    var minDistance = 1.0 / 0.0;
+    for (int i = 0; i < _positionVertices.length; ++i) {
+      if (_positionVertices[i].isVisible) {
+        final distance = _positionVertices[i].distance(space._viewerPosition);
+        if (distance > maxDistance) {
+          maxDistance = distance;
+        }
+        if (distance < minDistance) {
+          minDistance = distance;
+        }
+        distances[i] = distance;
+      } else {
+        distances[i] = 0.0;
+      }
+    }
+
+    final maxMinDiff = maxDistance - minDistance;
+    final colorList = List<double>();
+    for (int i = 0; i < distances.length; ++i) {
+      final relative = (distances[i] - minDistance) / maxMinDiff;
+      colorList.addAll([1.0 - relative, 0.0, relative]);
+    }
+    return colorList;
   }
 
   int get numEdges => _edges.length;

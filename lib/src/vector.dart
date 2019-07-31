@@ -91,6 +91,15 @@ class Vector {
     }
   }
 
+  double distance(final Vector other) {
+    var squareSum = 0.0;
+    for (int xi = 0; xi < space._dimensions; ++xi) {
+      final xiDistance = other[xi] - _coords[xi];
+      squareSum += xiDistance * xiDistance;
+    }
+    return sqrt(squareSum);
+  }
+
   double operator *(Vector other) {
     var product = 0.0;
     for (int i = 0; i <= space._dimensions; ++i) {
