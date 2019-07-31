@@ -39,23 +39,26 @@ class Edge {
   }
 }
 
+enum HyperObjectType { hypercube, hypersphere }
+
 class HyperObject {
-  List<Vector> _vertices;
-  List<Vector> _drawingVertices;
-  List<_EdgeIndices> _edges;
+  final List<Vector> _vertices;
+  final List<Vector> _drawingVertices;
+  final List<_EdgeIndices> _edges;
   Vector _translation;
   final _rotations;
   final _rotation_velocities;
   final Hyperspace space;
+  final HyperObjectType type;
 
-  HyperObject.hypercube(this.space, final length)
+  HyperObject.hypercube(this.space, final double length)
       : _translation = Vector(space),
         _rotations = AxisPairMap(space),
-        _rotation_velocities = AxisPairMap(space) {
-    _vertices = List<Vector>(1 << space._dimensions);
-    _drawingVertices = List<Vector>(_vertices.length);
-    _edges = List<_EdgeIndices>(space._dimensions * (1 << (space._dimensions - 1)));
-
+        _rotation_velocities = AxisPairMap(space),
+        _vertices = List<Vector>(1 << space._dimensions),
+        _drawingVertices = List<Vector>(1 << space._dimensions),
+        _edges = List<_EdgeIndices>(space._dimensions * (1 << (space._dimensions - 1))),
+        type = HyperObjectType.hypercube {
     var vertex = Vector.filled(space, -length / 2.0);
     vertex[space._dimensions] = 1.0;
     _vertices[0] = vertex;
@@ -68,8 +71,7 @@ class HyperObject {
       final numEdges = ei;
 
       for (int i = 0; i < numEdges; ++i) {
-        _edges[ei] =
-            _EdgeIndices(_edges[i].a + numVertices, _edges[i].b + numVertices);
+        _edges[ei] = _EdgeIndices(_edges[i].a + numVertices, _edges[i].b + numVertices);
         ++ei;
       }
 
@@ -80,6 +82,37 @@ class HyperObject {
         vertex[dim] += length;
         _vertices[vi] = vertex;
         ++vi;
+      }
+    }
+  }
+
+  HyperObject.hypersphere(this.space, final double radius, final int precision)
+      : _translation = Vector(space),
+        _rotations = AxisPairMap(space),
+        _rotation_velocities = AxisPairMap(space),
+        _vertices = List<Vector>(((space._dimensions * (space._dimensions - 1)) >> 1) * precision),
+        _drawingVertices = List<Vector>(((space._dimensions * (space._dimensions - 1)) >> 1) * precision),
+        _edges = List<_EdgeIndices>(((space._dimensions * (space._dimensions - 1)) >> 1) * precision),
+        type = HyperObjectType.hypersphere {
+    final delta = 2.0 * pi / precision;
+    int vi = 0;
+    int ei = 0;
+    for (int xa = 0; xa < space._dimensions - 1; ++xa) {
+      for (int xb = xa + 1; xb < space._dimensions; ++xb) {
+        for (int k = 0; k < precision; ++k) {
+          final vertex = Vector(space);
+          vertex[xa] = cos(k * delta) * radius;
+          vertex[xb] = sin(k * delta) * radius;
+          _vertices[vi] = vertex;
+          ++vi;
+          if (k == precision - 1) {
+            _edges[ei] = _EdgeIndices(vi - precision, vi - 1);
+            ++ei;
+          } else {
+            _edges[ei] = _EdgeIndices(vi - 1, vi);
+            ++ei;
+          }
+        }
       }
     }
   }
@@ -133,6 +166,5 @@ class HyperObject {
 
   int get numEdges => _edges.length;
 
-  Edge getEdge(int index) =>
-      Edge(_drawingVertices[_edges[index].a], _drawingVertices[_edges[index].b]);
+  Edge getEdge(int index) => Edge(_drawingVertices[_edges[index].a], _drawingVertices[_edges[index].b]);
 }

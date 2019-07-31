@@ -1,7 +1,7 @@
 name: hyperspace
 description: Hyperspace!
 # version: 0.0.0
-homepage: https://github.com/MQDuck/Hyperspace-Dart
+homepage: https://github.com/MQDuck/hyperspace
 author: Jeffrey Thomas Piercy <mqduck@mqduck.net>
 
 environment:

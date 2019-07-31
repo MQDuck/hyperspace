@@ -57,5 +57,11 @@ class Hyperspace {
     return cube;
   }
 
+  HyperObject addHypersphere(final double radius, final int precision) {
+    final sphere = HyperObject.hypersphere(this, radius, precision);
+    objects.add(sphere);
+    return sphere;
+  }
+
   void translate(Vector translation) => _globalTranslation += translation;
 }
