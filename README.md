@@ -1,1 +1,1 @@
-A library to render a [Hyperspace](https://github.com/MQDuck/hyperspace) to an HTML canvas.
+###Hyperspace!
