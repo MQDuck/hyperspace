@@ -25,7 +25,8 @@ library hyperspace;
 import 'dart:math';
 
 part 'src/axis_pair_map.dart';
-part 'src/hyper_object.dart';
+
+part 'src/hyperobject.dart';
 part 'src/hyperspace.dart';
 part 'src/transformation_matrix.dart';
 part 'src/vector.dart';

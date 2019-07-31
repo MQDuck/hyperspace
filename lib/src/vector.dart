@@ -22,39 +22,39 @@ part of hyperspace;
 class Vector {
   List<double> _coords;
   bool isVisible = false;
-  final Hyperspace space;
+  final Hyperspace _space;
 
-  Vector(this.space) {
-    _coords = List.filled(space._dimensions + 1, 0.0);
-    _coords[space._dimensions] = 1.0;
+  Vector(this._space) {
+    _coords = List.filled(_space._dimensions + 1, 0.0);
+    _coords[_space._dimensions] = 1.0;
   }
 
-  Vector.filled(this.space, double fill) {
-    _coords = List.filled(space._dimensions + 1, fill);
-    _coords[space._dimensions] = 1.0;
+  Vector.filled(this._space, double fill) {
+    _coords = List.filled(_space._dimensions + 1, fill);
+    _coords[_space._dimensions] = 1.0;
   }
 
-  Vector.zeroed(this.space) {
-    _coords = List.filled(space._dimensions + 1, 0.0);
+  Vector.zeroed(this._space) {
+    _coords = List.filled(_space._dimensions + 1, 0.0);
   }
 
-  Vector._nulled(this.space) {
-    _coords = List<double>(space._dimensions + 1);
+  Vector._nulled(this._space) {
+    _coords = List<double>(_space._dimensions + 1);
   }
 
-  Vector.from(this.space, Vector other) {
+  Vector.from(this._space, Vector other) {
     _coords = List.from(other._coords);
   }
 
-  Vector.fromList(this.space, List<double> list) {
-    if (list.length == space._dimensions + 1) {
+  Vector.fromList(this._space, List<double> list) {
+    if (list.length == _space._dimensions + 1) {
       _coords = List.from(list);
-    } else if (list.length <= space._dimensions) {
-      _coords = List<double>.filled(space._dimensions + 1, 0.0);
+    } else if (list.length <= _space._dimensions) {
+      _coords = List<double>.filled(_space._dimensions + 1, 0.0);
       for (int xi = 0; xi < list.length; ++xi) {
         _coords[xi] = list[xi];
       }
-      _coords[space._dimensions] = 1.0;
+      _coords[_space._dimensions] = 1.0;
     } else {
       throw ArgumentError();
     }
@@ -64,26 +64,26 @@ class Vector {
   void operator []=(int index, double val) => _coords[index] = val;
 
   Vector operator +(Vector rhs) {
-    final sum = Vector._nulled(space);
-    for (int i = 0; i < space._dimensions; ++i) {
+    final sum = Vector._nulled(_space);
+    for (int i = 0; i < _space._dimensions; ++i) {
       sum[i] = _coords[i] + rhs[i];
     }
-    sum[space._dimensions] = 1.0;
+    sum[_space._dimensions] = 1.0;
     return sum;
   }
 
   Vector operator -(Vector rhs) {
-    final difference = Vector._nulled(space);
-    for (int i = 0; i < space._dimensions; ++i) {
+    final difference = Vector._nulled(_space);
+    for (int i = 0; i < _space._dimensions; ++i) {
       difference[i] = _coords[i] - rhs[i];
     }
-    difference[space._dimensions] = 1.0;
+    difference[_space._dimensions] = 1.0;
     return difference;
   }
 
   void setVisible() {
     isVisible = true;
-    for (int i = 2; i < space._dimensions; ++i) {
+    for (int i = 2; i < _space._dimensions; ++i) {
       if (_coords[i] < 0.0) {
         isVisible = false;
         return;
@@ -93,7 +93,7 @@ class Vector {
 
   double distance(final Vector other) {
     var squareSum = 0.0;
-    for (int xi = 0; xi < space._dimensions; ++xi) {
+    for (int xi = 0; xi < _space._dimensions; ++xi) {
       final xiDistance = other[xi] - _coords[xi];
       squareSum += xiDistance * xiDistance;
     }
@@ -102,7 +102,7 @@ class Vector {
 
   double operator *(Vector other) {
     var product = 0.0;
-    for (int i = 0; i <= space._dimensions; ++i) {
+    for (int i = 0; i <= _space._dimensions; ++i) {
       product += _coords[i] * other[i];
     }
     return product;

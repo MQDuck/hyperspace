@@ -37,19 +37,20 @@ void main() {
   spaceView.targetFrameTime = 16;
 //  spaceView.space.usePerspective = false;
 
-  final cube = spaceView.space.addHypercube(100.0);
+  final cube = spaceView.space.addHypercube(100.0, dimensions: 3);
   cube.setRotationVelocity(0, 1, 0.3 * 0.00062831853071795865);
   cube.setRotationVelocity(0, 2, 0.3 * 0.00062831853071795865);
   cube.setRotationVelocity(1, 2, 0.3 * 0.00062831853071795865);
-//  cube.setRotationVelocity(0, 3, 0.45 * 0.00062831853071795865);
+  cube.setRotationVelocity(0, 3, 0.45 * 0.00062831853071795865);
 //  cube.setRotationVelocity(1, 2, 0.40 * 0.00062831853071795865);
 //  cube.setRotationVelocity(1, 3, 0.35 * 0.00062831853071795865);
 //  cube.setRotationVelocity(2, 3, 0.30 * 0.00062831853071795865);
 
-  final sphere = spaceView.space.addHypersphere(100.0, 30);
+  final sphere = spaceView.space.addHypersphere(100.0, 30, dimensions: 3);
   sphere.setRotationVelocity(0, 1, 0.3 * -0.00062831853071795865);
   sphere.setRotationVelocity(0, 2, 0.3 * -0.00062831853071795865);
   sphere.setRotationVelocity(1, 2, 0.3 * -0.00062831853071795865);
+  sphere.setRotationVelocity(0, 3, 0.3 * -0.00062831853071795865);
 
   spaceView.run();
 }

@@ -20,7 +20,7 @@
 part of hyperspace;
 
 class Hyperspace {
-  final List<HyperObject> objects = [];
+  final List<Hyperobject> objects = [];
   TransformationMatrix _perspectiveMatrix;
   Vector _globalTranslation;
   Vector _viewerPosition;
@@ -58,14 +58,14 @@ class Hyperspace {
     }
   }
 
-  HyperObject addHypercube(final double length, {int dimensions = -1}) {
-    final cube = HyperObject.hypercube(this, length, dimensions: dimensions);
+  Hyperobject addHypercube(final double length, {int dimensions = -1}) {
+    final cube = Hyperobject.hypercube(this, length, dimensions: dimensions);
     objects.add(cube);
     return cube;
   }
 
-  HyperObject addHypersphere(final double radius, final int precision, {int dimensions = -1}) {
-    final sphere = HyperObject.hypersphere(this, radius, precision, dimensions: dimensions);
+  Hyperobject addHypersphere(final double radius, final int precision, {int dimensions = -1}) {
+    final sphere = Hyperobject.hypersphere(this, radius, precision, dimensions: dimensions);
     objects.add(sphere);
     return sphere;
   }

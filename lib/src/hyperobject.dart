@@ -39,9 +39,9 @@ class Edge {
   }
 }
 
-enum HyperObjectType { hypercube, hypersphere }
+enum HyperobjectType { hypercube, hypersphere }
 
-class HyperObject {
+class Hyperobject {
   List<Vector> _vertices;
   List<Vector> _positionVertices;
   List<Vector> _drawingVertices;
@@ -49,16 +49,16 @@ class HyperObject {
   Vector _translation;
   final _rotations;
   final _rotation_velocities;
-  final Hyperspace space;
-  final HyperObjectType type;
+  final Hyperspace _space;
+  final HyperobjectType type;
 
-  HyperObject.hypercube(this.space, final double length, {int dimensions = -1})
-      : _translation = Vector(space),
-        _rotations = AxisPairMap(space),
-        _rotation_velocities = AxisPairMap(space),
-        type = HyperObjectType.hypercube {
-    if (dimensions < 0 || dimensions > space._dimensions) {
-      dimensions = space._dimensions;
+  Hyperobject.hypercube(this._space, final double length, {int dimensions = -1})
+      : _translation = Vector(_space),
+        _rotations = _AxisPairMap(_space),
+        _rotation_velocities = _AxisPairMap(_space),
+        type = HyperobjectType.hypercube {
+    if (dimensions < 0 || dimensions > _space._dimensions) {
+      dimensions = _space._dimensions;
     }
     _vertices = List<Vector>(1 << dimensions);
     _positionVertices = List<Vector>(_vertices.length);
@@ -66,7 +66,7 @@ class HyperObject {
     _edges = List<_EdgeIndices>(dimensions * (1 << (dimensions - 1)));
 
     //var vertex = Vector.filled(space, -length / 2.0);
-    var vertex = Vector(space);
+    var vertex = Vector(_space);
     for (int xi = 0; xi < dimensions; ++xi) {
       vertex[xi] = -length / 2.0;
     }
@@ -87,7 +87,7 @@ class HyperObject {
       for (int i = 0; i < numVertices; ++i) {
         _edges[ei] = _EdgeIndices(i, vi);
         ++ei;
-        vertex = Vector.from(space, _vertices[i]);
+        vertex = Vector.from(_space, _vertices[i]);
         vertex[dim] += length;
         _vertices[vi] = vertex;
         ++vi;
@@ -95,13 +95,13 @@ class HyperObject {
     }
   }
 
-  HyperObject.hypersphere(this.space, final double radius, final int precision, {int dimensions = -1})
-      : _translation = Vector(space),
-        _rotations = AxisPairMap(space),
-        _rotation_velocities = AxisPairMap(space),
-        type = HyperObjectType.hypersphere {
-    if (dimensions < 0 || dimensions > space._dimensions) {
-      dimensions = space._dimensions;
+  Hyperobject.hypersphere(this._space, final double radius, final int precision, {int dimensions = -1})
+      : _translation = Vector(_space),
+        _rotations = _AxisPairMap(_space),
+        _rotation_velocities = _AxisPairMap(_space),
+        type = HyperobjectType.hypersphere {
+    if (dimensions < 0 || dimensions > _space._dimensions) {
+      dimensions = _space._dimensions;
     }
     _vertices = List<Vector>(((dimensions * (dimensions - 1)) >> 1) * precision);
     _positionVertices = List<Vector>(_vertices.length);
@@ -114,7 +114,7 @@ class HyperObject {
     for (int xa = 0; xa < dimensions - 1; ++xa) {
       for (int xb = xa + 1; xb < dimensions; ++xb) {
         for (int k = 0; k < precision; ++k) {
-          final vertex = Vector(space);
+          final vertex = Vector(_space);
           vertex[xa] = cos(k * delta) * radius;
           vertex[xb] = sin(k * delta) * radius;
           _vertices[vi] = vertex;
@@ -133,27 +133,27 @@ class HyperObject {
 
   void translate(Vector translation) => _translation += translation;
 
-  void translateFromList(List<double> translation) => _translation += Vector.fromList(space, translation);
+  void translateFromList(List<double> translation) => _translation += Vector.fromList(_space, translation);
 
   void setRotationVelocity(int xa, int xb, double theta) => _rotation_velocities.set(xa, xb, theta);
 
   void _update(double time) {
-    var drawMatrix = TransformationMatrix.identity(space);
-    for (int xa = 0; xa < space._dimensions - 1; ++xa) {
-      for (int xb = xa + 1; xb < space._dimensions; ++xb) {
+    var drawMatrix = TransformationMatrix.identity(_space);
+    for (int xa = 0; xa < _space._dimensions - 1; ++xa) {
+      for (int xb = xa + 1; xb < _space._dimensions; ++xb) {
         final theta = _rotations.get(xa, xb) + _rotation_velocities.get(xa, xb) * time;
         _rotations.set(xa, xb, theta);
-        drawMatrix = TransformationMatrix.rotation(space, xa, xb, theta) * drawMatrix;
+        drawMatrix = TransformationMatrix.rotation(_space, xa, xb, theta) * drawMatrix;
       }
     }
-    drawMatrix = TransformationMatrix.translation(space, _translation + space._globalTranslation) * drawMatrix;
+    drawMatrix = TransformationMatrix.translation(_space, _translation + _space._globalTranslation) * drawMatrix;
 
     for (int i = 0; i < _vertices.length; ++i) {
       var vertex = drawMatrix.transform(_vertices[i]);
       vertex.setVisible();
       _positionVertices[i] = vertex;
-      if (vertex.isVisible && space.usePerspective) {
-        _drawingVertices[i] = space._perspectiveMatrix.transform(vertex);
+      if (vertex.isVisible && _space.usePerspective) {
+        _drawingVertices[i] = _space._perspectiveMatrix.transform(vertex);
       } else {
         _drawingVertices[i] = vertex;
       }
@@ -186,7 +186,7 @@ class HyperObject {
     var minDistance = 1.0 / 0.0;
     for (int i = 0; i < _positionVertices.length; ++i) {
       if (_positionVertices[i].isVisible) {
-        final distance = _positionVertices[i].distance(space._viewerPosition);
+        final distance = _positionVertices[i].distance(_space._viewerPosition);
         if (distance > maxDistance) {
           maxDistance = distance;
         }

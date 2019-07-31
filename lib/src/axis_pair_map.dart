@@ -19,13 +19,13 @@
 
 part of hyperspace;
 
-class AxisPairMap {
-  final List<List<double>> pairs;
-  final Hyperspace space;
+class _AxisPairMap {
+  final List<List<double>> _pairs;
+  final Hyperspace _space;
 
-  AxisPairMap(this.space)
-      : pairs = List<List<double>>.generate(
-      space._dimensions, (int index) => index == 0 ? null : List<double>.filled(space._dimensions, 0.0));
+  _AxisPairMap(this._space)
+      : _pairs = List<List<double>>.generate(
+      _space._dimensions, (int index) => index == 0 ? null : List<double>.filled(index, 0.0));
 
   void set(int xa, int xb, double val) {
     assert(xa != xb);
@@ -36,7 +36,7 @@ class AxisPairMap {
       xa = xa - xb;
     }
 
-    pairs[xa][xb] = val;
+    _pairs[xa][xb] = val;
   }
 
   double get(int xa, int xb) {
@@ -48,6 +48,6 @@ class AxisPairMap {
       xa = xa - xb;
     }
 
-    return pairs[xb][xa];
+    return _pairs[xb][xa];
   }
 }
