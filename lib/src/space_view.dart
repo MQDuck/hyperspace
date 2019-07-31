@@ -154,13 +154,16 @@ class SpaceView {
     for (final object in space.objects) {
       final vertices = object.getVertexList(scaleX: _scaleX, scaleY: _scaleY);
       final indices = object.getVisibleEdgeIndexList();
-      final colors = List<double>();
+
+      /*final colors = List<double>();
       for (int i = 0; i < vertices.length >> 2; ++i) {
         colors.addAll([1.0, 0.0, 0.0]);
       }
       for (int i = 0; i < vertices.length >> 2; ++i) {
         colors.addAll([0.0, 0.0, 1.0]);
-      }
+      }*/
+
+      final colors = object.getDepthColorList();
 
       _gl.bindBuffer(WebGL.ARRAY_BUFFER, _vertexBuffer);
       _gl.bufferSubData(WebGL.ARRAY_BUFFER, 0, Float32List.fromList(vertices));

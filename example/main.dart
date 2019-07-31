@@ -33,17 +33,18 @@ final output = (String str) => querySelector('#output').text += '$str\n';
 SpaceView spaceView;
 
 void main() {
-  spaceView = SpaceView(3, 800.0, 100.0, canvas, gl, output: output);
+  spaceView = SpaceView(4, 800.0, 100.0, canvas, gl, output: output);
   spaceView.targetFrameTime = 16;
+//  spaceView.space.usePerspective = false;
 
   final cube = spaceView.space.addHypercube(100.0);
   cube.setRotationVelocity(0, 1, 0.3 * 0.00062831853071795865);
   cube.setRotationVelocity(0, 2, 0.3 * 0.00062831853071795865);
   cube.setRotationVelocity(1, 2, 0.3 * 0.00062831853071795865);
-//  cube.setRotationVelocity(0, 3, 0.00062831853071795865);
-//  cube.setRotationVelocity(1, 2, 0.00062831853071795865);
-//  cube.setRotationVelocity(1, 3, 0.00062831853071795865);
-//  cube.setRotationVelocity(2, 3, 0.00062831853071795865);
+//  cube.setRotationVelocity(0, 3, 0.45 * 0.00062831853071795865);
+//  cube.setRotationVelocity(1, 2, 0.40 * 0.00062831853071795865);
+//  cube.setRotationVelocity(1, 3, 0.35 * 0.00062831853071795865);
+//  cube.setRotationVelocity(2, 3, 0.30 * 0.00062831853071795865);
 
   final sphere = spaceView.space.addHypersphere(100.0, 30);
   sphere.setRotationVelocity(0, 1, 0.3 * -0.00062831853071795865);
