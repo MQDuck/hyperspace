@@ -26,7 +26,6 @@ import 'dart:web_gl';
 
 import 'package:hyperspace/hyperspace_web_canvas.dart';
 
-
 final CanvasElement canvas = querySelector('#hypercanvas');
 final RenderingContext gl = canvas.getContext3d();
 final output = (String str) => querySelector('#output').text += '$str\n';
