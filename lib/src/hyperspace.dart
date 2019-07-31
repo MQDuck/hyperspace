@@ -58,14 +58,14 @@ class Hyperspace {
     }
   }
 
-  HyperObject addHypercube(final double length) {
-    final cube = HyperObject.hypercube(this, length);
+  HyperObject addHypercube(final double length, {int dimensions = -1}) {
+    final cube = HyperObject.hypercube(this, length, dimensions: dimensions);
     objects.add(cube);
     return cube;
   }
 
-  HyperObject addHypersphere(final double radius, final int precision) {
-    final sphere = HyperObject.hypersphere(this, radius, precision);
+  HyperObject addHypersphere(final double radius, final int precision, {int dimensions = -1}) {
+    final sphere = HyperObject.hypersphere(this, radius, precision, dimensions: dimensions);
     objects.add(sphere);
     return sphere;
   }
