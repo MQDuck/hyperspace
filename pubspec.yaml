@@ -1,8 +1,8 @@
-name: Hyperspace_Web
-description: Hyperspace Web!
-# version: 1.0.0
-#homepage: https://www.example.com
-#author: mqduck <mqduck@mqduck.net>
+name: hyperspace_web_canvas
+description: A library to render a Hyperspace to an HTML canvas.
+# version: 0.0.0
+homepage: https://github.com/MQDuck/hyperspace-web-canvas
+author: Jeffrey Thomas Piercy <mqduck@mqduck.net>
 
 environment:
   sdk: '>=2.4.0 <3.0.0'
@@ -13,7 +13,9 @@ environment:
 dev_dependencies:
   build_runner: ^1.5.0
   build_web_compilers: ^2.1.0
+
   pedantic: ^1.7.0
+  test: ^1.6.0
   hyperspace:
     #git: git://github.com/MQDuck/Hyperspace-Dart.git
     path: ../hyperspace

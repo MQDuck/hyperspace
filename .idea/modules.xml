@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Hyperspace-Web.iml" filepath="$PROJECT_DIR$/.idea/Hyperspace-Web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/hyperspace-web-canvas.iml" filepath="$PROJECT_DIR$/.idea/hyperspace-web-canvas.iml" />
     </modules>
   </component>
 </project>
