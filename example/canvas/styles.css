@@ -14,9 +14,30 @@ html, body {
   white-space: pre-wrap;
 }
 
+#left {
+  float: left;
+  /*padding: 0% 2% 0% 0%;*/
+}
+
 #hyperwrapper {
-  width: 1000px;
-  height: 1000px;
   margin: auto;
-  background: black;
+  /*background: black;*/
+  /*top: 10px;*/
+  /*margin-left: 16%;*/
+  /*margin-right: 16%;*/
+  /*height: 90%;*/
+  float: none;
+  overflow: hidden;
+  height: 90%;
+}
+
+#right {
+  float: right;
+  /*padding: 0% 0% 0% 2%;*/
+}
+
+#footer {
+  padding-top: 2%;
+  text-align: center;
+  clear: both;
 }

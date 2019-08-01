@@ -26,6 +26,7 @@ import 'dart:web_gl';
 
 import 'package:hyperspace/hyperspace_web_canvas.dart';
 
+final DivElement wrapper = querySelector('#hyperwrapper');
 final CanvasElement canvas = querySelector('#hypercanvas');
 final RenderingContext gl = canvas.getContext3d();
 final output = (String str) => querySelector('#output').text += '$str\n';
@@ -33,9 +34,19 @@ final output = (String str) => querySelector('#output').text += '$str\n';
 SpaceView spaceView;
 
 void main() {
+  final wrapperWidthStr = wrapper
+      .getComputedStyle()
+      .width;
+  final wrapperHeightStr = wrapper
+      .getComputedStyle()
+      .height;
+  canvas.width = double.parse(wrapperWidthStr.substring(0, wrapperWidthStr.length - 2)).toInt();
+  canvas.height = double.parse(wrapperHeightStr.substring(0, wrapperHeightStr.length - 2)).toInt();
+
   spaceView = SpaceView(4, 800.0, 100.0, canvas, gl, output: output);
   spaceView.targetFrameTime = 16;
 //  spaceView.space.usePerspective = false;
+//  output('${canvas.height}');
 
   final cube = spaceView.space.addHypercube(100.0, dimensions: 3);
   cube.setRotationVelocity(0, 1, 0.3 * 0.00062831853071795865);
