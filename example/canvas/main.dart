@@ -29,6 +29,7 @@ import 'package:hyperspace/hyperspace_web_canvas.dart';
 final DivElement wrapper = querySelector('#hyperwrapper');
 final CanvasElement canvas = querySelector('#hypercanvas');
 final RenderingContext gl = canvas.getContext3d();
+final CheckboxInputElement perspectiveCheckbox = querySelector('#perspective');
 final output = (String str) => querySelector('#output').text += '$str\n';
 //final output = (String str) => print(str);
 SpaceView spaceView;
@@ -48,7 +49,9 @@ void main() {
 //  spaceView.space.usePerspective = false;
 //  output('${canvas.height}');
 
-  final cube = spaceView.space.addHypercube(100.0, dimensions: 3);
+  perspectiveCheckbox.addEventListener('change', (_) => spaceView.space.usePerspective = perspectiveCheckbox.checked);
+
+  final cube = spaceView.space.addHypercube(100.0, dimensions: 4);
   cube.setRotationVelocity(0, 1, 0.3 * 0.00062831853071795865);
   cube.setRotationVelocity(0, 2, 0.3 * 0.00062831853071795865);
   cube.setRotationVelocity(1, 2, 0.3 * 0.00062831853071795865);
@@ -57,10 +60,10 @@ void main() {
 //  cube.setRotationVelocity(1, 3, 0.35 * 0.00062831853071795865);
 //  cube.setRotationVelocity(2, 3, 0.30 * 0.00062831853071795865);
 
-  final sphere = spaceView.space.addHypersphere(100.0, 30, dimensions: 3);
-  sphere.setRotationVelocity(0, 1, 0.3 * -0.00062831853071795865);
-  sphere.setRotationVelocity(0, 2, 0.3 * -0.00062831853071795865);
-  sphere.setRotationVelocity(1, 2, 0.3 * -0.00062831853071795865);
+//  final sphere = spaceView.space.addHypersphere(100.0, 30, dimensions: 3);
+//  sphere.setRotationVelocity(0, 1, 0.3 * -0.00062831853071795865);
+//  sphere.setRotationVelocity(0, 2, 0.3 * -0.00062831853071795865);
+//  sphere.setRotationVelocity(1, 2, 0.3 * -0.00062831853071795865);
 //  sphere.setRotationVelocity(0, 3, 0.3 * -0.00062831853071795865);
 
   spaceView.run();
